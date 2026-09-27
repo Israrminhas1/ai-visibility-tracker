@@ -481,3 +481,10 @@
 	.aivt-steps li { grid-template-columns: 32px 1fr; }
 	.aivt-steps li > a, .aivt-steps li > .button { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 6px; }
 }
+
+/* Results toolbar: cost, export and delete on the right. */
+.aivt-filters__end { margin-left: auto; display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.aivt-danger { color: #b32d2e; }
+.aivt-danger:hover, .aivt-danger:focus { color: #8a2424; }
+.aivt-warning { margin: 0 0 8px; padding: 6px 10px; background: #fcf9e8; border-left: 4px solid #dba617; }
+.aivt-save-bar { position: sticky; bottom: 0; margin: 0; padding: 12px 0; background: #f0f0f1; z-index: 5; }

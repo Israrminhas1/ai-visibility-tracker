@@ -95,11 +95,28 @@ class Rest {
 
 		register_rest_route(
 			self::NS,
-			'/runs/(?P<id>\d+)',
+			'/runs/estimate',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_run' ),
+				'callback'            => array( $this, 'estimate' ),
 				'permission_callback' => $admin,
+			)
+		);
+
+		register_rest_route(
+			self::NS,
+			'/runs/(?P<id>\d+)',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_run' ),
+					'permission_callback' => $admin,
+				),
+				array(
+					'methods'             => WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_run' ),
+					'permission_callback' => $admin,
+				),
 			)
 		);
 
@@ -256,8 +273,43 @@ class Rest {
 	 */
 	public function cancel_run( WP_REST_Request $req ) {
 		$repo = new Repository();
+		if ( ! $repo->run( (int) $req['id'] ) ) {
+			return new WP_Error( 'aivt_not_found', __( 'Run not found.', 'ai-visibility-tracker' ), array( 'status' => 404 ) );
+		}
 		$repo->cancel_run( (int) $req['id'] );
 		return $this->run_payload( $repo->run( (int) $req['id'] ) );
+	}
+
+	/**
+	 * DELETE /runs/{id} — remove a run and its answers.
+	 *
+	 * @param WP_REST_Request $req Request.
+	 * @return array|WP_Error
+	 */
+	public function delete_run( WP_REST_Request $req ) {
+		$repo = new Repository();
+		$run  = $repo->run( (int) $req['id'] );
+		if ( ! $run ) {
+			return new WP_Error( 'aivt_not_found', __( 'Run not found.', 'ai-visibility-tracker' ), array( 'status' => 404 ) );
+		}
+		if ( 'running' === $run['status'] ) {
+			$repo->cancel_run( (int) $run['id'] );
+		}
+		$repo->delete_run( (int) $run['id'] );
+		return array( 'deleted' => true );
+	}
+
+	/**
+	 * GET /runs/estimate — expected cost of a check now.
+	 *
+	 * @return array
+	 */
+	public function estimate() {
+		$usd = Runner::estimate();
+		return array(
+			'usd'       => round( $usd, 4 ),
+			'formatted' => Pricing::format( $usd ),
+		);
 	}
 
 	/**
@@ -300,6 +352,7 @@ class Rest {
 			'failed'    => (int) $run['failed'],
 			'mentioned' => (int) $run['mentioned'],
 			'percent'   => (int) floor( 100 * $done / $total ),
+			'cost'      => Pricing::format( isset( $run['cost'] ) ? (float) $run['cost'] : 0 ),
 		);
 	}
 }

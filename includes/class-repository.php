@@ -23,6 +23,16 @@ class Repository {
 	const SCORE_SQL = 'SUM(CASE WHEN brand_cited = 1 THEN 1 WHEN brand_mentioned = 1 THEN 0.5 ELSE 0 END)';
 
 	/**
+	 * An item "processing" longer than this is taken to have died with its request.
+	 */
+	const STALE_MINUTES = 20;
+
+	/**
+	 * Most attempts per item, counting ones that died mid-request.
+	 */
+	const MAX_ATTEMPTS = 3;
+
+	/**
 	 * Table names.
 	 *
 	 * @var array<string,string>
@@ -256,7 +266,8 @@ class Repository {
 					SUM(status = 'failed') AS failed,
 					SUM(status IN ('pending','processing')) AS open_items,
 					SUM(status = 'done' AND brand_mentioned = 1) AS mentioned,
-					SUM(status = 'done' AND brand_cited = 1) AS cited
+					SUM(status = 'done' AND brand_cited = 1) AS cited,
+					SUM(cost) AS cost
 				FROM {$this->t['results']} WHERE run_id = %d",
 				$run_id
 			),
@@ -268,6 +279,7 @@ class Repository {
 			'failed'    => (int) $c['failed'],
 			'mentioned' => (int) $c['mentioned'],
 			'cited'     => (int) $c['cited'],
+			'cost'      => (float) $c['cost'],
 		);
 		if ( 0 === (int) $c['open_items'] ) {
 			$row['status']      = 'completed';
@@ -294,7 +306,11 @@ class Repository {
 
 	/**
 	 * Claim the next pending item so no other worker processes it.
-	 * Items stuck in "processing" for 10+ minutes (a crashed request) are retried.
+	 *
+	 * Items stuck in "processing" for STALE_MINUTES (the request died, e.g. at
+	 * the host's time limit) are tried again, up to MAX_ATTEMPTS: an answer that
+	 * always kills the request must not be paid for forever. The limit is well
+	 * above the longest answer (Claude can take several long calls).
 	 *
 	 * @param int $run_id Run ID.
 	 * @return array|null Claimed result row.
@@ -302,8 +318,18 @@ class Repository {
 	public function claim_next( $run_id ) {
 		global $wpdb;
 
-		$stale = gmdate( 'Y-m-d H:i:s', time() - 10 * MINUTE_IN_SECONDS );
-		$wpdb->query( $wpdb->prepare( "UPDATE {$this->t['results']} SET status = 'pending' WHERE run_id = %d AND status = 'processing' AND completed_at < %s", $run_id, $stale ) );
+		$stale = gmdate( 'Y-m-d H:i:s', time() - self::STALE_MINUTES * MINUTE_IN_SECONDS );
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$this->t['results']} SET status = IF(attempts >= %d, 'failed', 'pending'), error = IF(attempts >= %d, %s, error)
+				WHERE run_id = %d AND status = 'processing' AND completed_at < %s",
+				self::MAX_ATTEMPTS,
+				self::MAX_ATTEMPTS,
+				__( 'The request stopped before the answer arrived, several times (probably the host\'s time limit).', 'ai-visibility-tracker' ),
+				$run_id,
+				$stale
+			)
+		);
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$this->t['results']} WHERE run_id = %d AND status = 'pending' ORDER BY attempts ASC, id ASC LIMIT 1", $run_id ) );
@@ -330,7 +356,9 @@ class Repository {
 		global $wpdb;
 		$id = (int) $result['id'];
 
-		$wpdb->update(
+		// Only while this worker still owns the item: it may have been cancelled,
+		// or handed to another worker after going stale.
+		$saved = $wpdb->update(
 			$this->t['results'],
 			array(
 				'status'          => 'done',
@@ -340,11 +368,24 @@ class Repository {
 				'brand_position'  => $analysis['brand_position'],
 				'input_tokens'    => (int) $answer['input_tokens'],
 				'output_tokens'   => (int) $answer['output_tokens'],
+				'searches'        => isset( $answer['searches'] ) ? (int) $answer['searches'] : 0,
+				'cost'            => isset( $answer['cost'] ) ? (float) $answer['cost'] : 0,
 				'error'           => null,
 				'completed_at'    => self::now(),
 			),
-			array( 'id' => $id )
+			array(
+				'id'     => $id,
+				'status' => 'processing',
+			)
 		);
+
+		if ( ! $saved ) {
+			return false;
+		}
+
+		// Never twice: clear anything an earlier, abandoned attempt left behind.
+		$wpdb->delete( $this->t['citations'], array( 'result_id' => $id ) );
+		$wpdb->delete( $this->t['mentions'], array( 'result_id' => $id ) );
 
 		foreach ( $answer['citations'] as $c ) {
 			$wpdb->insert(
@@ -374,6 +415,8 @@ class Repository {
 				)
 			);
 		}
+
+		return true;
 	}
 
 	/**
@@ -410,7 +453,32 @@ class Repository {
 				'error'        => mb_substr( (string) $error, 0, 1000 ),
 				'completed_at' => self::now(),
 			),
-			array( 'id' => (int) $result['id'] )
+			array(
+				'id'     => (int) $result['id'],
+				'status' => 'processing',
+			)
+		);
+	}
+
+	/**
+	 * Fail every remaining item of one engine in a run, e.g. after its key was
+	 * rejected or its balance ran out: the same error would repeat for each.
+	 *
+	 * @param int    $run_id Run ID.
+	 * @param string $engine Engine key.
+	 * @param string $error  Message.
+	 * @return int Items failed.
+	 */
+	public function fail_engine( $run_id, $engine, $error ) {
+		global $wpdb;
+		return (int) $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$this->t['results']} SET status = 'failed', error = %s, completed_at = %s WHERE run_id = %d AND engine = %s AND status = 'pending'",
+				mb_substr( (string) $error, 0, 1000 ),
+				self::now(),
+				$run_id,
+				$engine
+			)
 		);
 	}
 
@@ -423,7 +491,7 @@ class Repository {
 	 */
 	public function results( $run_id, array $filters = array() ) {
 		global $wpdb;
-		$sql  = "SELECT id, run_id, prompt_id, engine, model, topic, prompt, status, brand_mentioned, brand_cited, brand_position, error, completed_at FROM {$this->t['results']} WHERE run_id = %d";
+		$sql  = "SELECT id, run_id, prompt_id, engine, model, topic, prompt, status, brand_mentioned, brand_cited, brand_position, cost, error, completed_at FROM {$this->t['results']} WHERE run_id = %d";
 		$args = array( $run_id );
 		if ( ! empty( $filters['engine'] ) ) {
 			$sql   .= ' AND engine = %s';
@@ -474,6 +542,7 @@ class Repository {
 	 */
 	public function engine_stats( $run_id ) {
 		global $wpdb;
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SCORE_SQL is a fixed SQL expression and ID lists are cast to integers.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT engine,
@@ -497,6 +566,7 @@ class Repository {
 				'avg_position' => null === $r['avg_position'] ? null : round( (float) $r['avg_position'], 1 ),
 			);
 		}
+		// phpcs:enable
 		return $out;
 	}
 
@@ -550,6 +620,7 @@ class Repository {
 	 */
 	public function trend( $limit = 12 ) {
 		global $wpdb;
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SCORE_SQL is a fixed SQL expression and ID lists are cast to integers.
 		$runs = array_reverse( $this->runs( $limit, 'completed' ) );
 		if ( ! $runs ) {
 			return array();
@@ -572,6 +643,7 @@ class Repository {
 		foreach ( $runs as &$run ) {
 			$run['by_engine'] = isset( $by_run[ $run['id'] ] ) ? $by_run[ $run['id'] ] : array();
 		}
+		// phpcs:enable
 		return $runs;
 	}
 
@@ -583,7 +655,9 @@ class Repository {
 	 */
 	public function run_score( $run_id ) {
 		global $wpdb;
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SCORE_SQL is a fixed SQL expression and ID lists are cast to integers.
 		$r = $wpdb->get_row( $wpdb->prepare( 'SELECT COUNT(*) AS done, ' . self::SCORE_SQL . " AS points FROM {$this->t['results']} WHERE run_id = %d AND status = 'done'", $run_id ), ARRAY_A );
+		// phpcs:enable
 		return $r && (int) $r['done'] ? (int) round( 100 * $r['points'] / $r['done'] ) : null;
 	}
 
@@ -595,6 +669,7 @@ class Repository {
 	 */
 	public function topic_stats( $run_id ) {
 		global $wpdb;
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SCORE_SQL is a fixed SQL expression and ID lists are cast to integers.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT topic, COUNT(*) AS done, COUNT(DISTINCT prompt_id) AS prompts, SUM(brand_mentioned) AS mentioned, ' . self::SCORE_SQL . " AS points
@@ -607,6 +682,7 @@ class Repository {
 		foreach ( $rows as &$r ) {
 			$r['score'] = $r['done'] ? (int) round( 100 * $r['points'] / $r['done'] ) : 0;
 		}
+		// phpcs:enable
 		return $rows;
 	}
 
@@ -752,20 +828,18 @@ class Repository {
 		global $wpdb;
 		$day     = current_time( 'Y-m-d' );
 		$path    = mb_substr( $path, 0, 190 );
-		$updated = $wpdb->query( $wpdb->prepare( "UPDATE {$this->t['traffic']} SET hits = hits + 1 WHERE day = %s AND kind = %s AND source = %s AND path = %s", $day, $kind, $source, $path ) );
-		if ( ! $updated ) {
-			$wpdb->insert(
-				$this->t['traffic'],
-				array(
-					'day'     => $day,
-					'kind'    => $kind,
-					'source'  => $source,
-					'path'    => $path,
-					'post_id' => (int) $post_id,
-					'hits'    => 1,
-				)
-			);
-		}
+		// One statement, so two visits at the same moment are both counted.
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$this->t['traffic']} (day, kind, source, path, post_id, hits) VALUES (%s, %s, %s, %s, %d, 1)
+				ON DUPLICATE KEY UPDATE hits = hits + 1",
+				$day,
+				$kind,
+				$source,
+				$path,
+				(int) $post_id
+			)
+		);
 	}
 
 	/**
@@ -813,12 +887,14 @@ class Repository {
 		$col = 'path' === $by ? 'path' : 'source';
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT $col AS k, MAX(post_id) AS post_id, SUM(hits) AS hits, MAX(day) AS last_day
+				"SELECT %i AS k, MAX(post_id) AS post_id, SUM(hits) AS hits, MAX(day) AS last_day
 				FROM {$this->t['traffic']} WHERE kind = %s AND day BETWEEN %s AND %s
-				GROUP BY $col ORDER BY hits DESC LIMIT %d",
+				GROUP BY %i ORDER BY hits DESC LIMIT %d",
+				$col,
 				$kind,
 				$from,
 				$to,
+				$col,
 				$limit
 			),
 			ARRAY_A
@@ -851,5 +927,77 @@ class Repository {
 			$wpdb->query( "DELETE FROM {$this->t[ $table ]} WHERE run_id IN ($in)" );
 		}
 		$wpdb->query( "DELETE FROM {$this->t['runs']} WHERE id IN ($in)" );
+	}
+
+	/**
+	 * Every traffic row since a day, newest first (for export).
+	 *
+	 * @param string $from Y-m-d.
+	 * @return array
+	 */
+	public function traffic_rows( $from ) {
+		global $wpdb;
+		return $wpdb->get_results( $wpdb->prepare( "SELECT day, kind, source, path, hits FROM {$this->t['traffic']} WHERE day >= %s ORDER BY day DESC, kind, source, path", $from ), ARRAY_A );
+	}
+
+	/**
+	 * Delete one run and everything recorded in it. A run in progress is cancelled first.
+	 *
+	 * @param int $run_id Run ID.
+	 */
+	public function delete_run( $run_id ) {
+		global $wpdb;
+		$run_id = (int) $run_id;
+		foreach ( array( 'citations', 'mentions', 'results' ) as $table ) {
+			$wpdb->delete( $this->t[ $table ], array( 'run_id' => $run_id ) );
+		}
+		$wpdb->delete( $this->t['runs'], array( 'id' => $run_id ) );
+	}
+
+	/**
+	 * Average cost of a recent answer on an engine and model, or null before
+	 * there are enough answers to go by.
+	 *
+	 * @param string $engine Engine key.
+	 * @param string $model  Model ID.
+	 * @return float|null USD.
+	 */
+	public function average_cost( $engine, $model ) {
+		global $wpdb;
+		$costs = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT cost FROM {$this->t['results']} WHERE engine = %s AND model = %s AND status = 'done' AND cost > 0 ORDER BY id DESC LIMIT 20",
+				$engine,
+				$model
+			)
+		);
+		return count( $costs ) >= 3 ? array_sum( array_map( 'floatval', $costs ) ) / count( $costs ) : null;
+	}
+
+	/**
+	 * Money spent on answers since a time (UTC).
+	 *
+	 * @param string $since MySQL datetime.
+	 * @return float USD.
+	 */
+	public function spent_since( $since ) {
+		global $wpdb;
+		return (float) $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE(SUM(cost), 0) FROM {$this->t['results']} WHERE completed_at >= %s AND status = 'done'", $since ) );
+	}
+
+	/**
+	 * Cost of a run per engine.
+	 *
+	 * @param int $run_id Run ID.
+	 * @return array<string,float> Engine => USD.
+	 */
+	public function cost_by_engine( $run_id ) {
+		global $wpdb;
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT engine, SUM(cost) AS cost FROM {$this->t['results']} WHERE run_id = %d GROUP BY engine", $run_id ), ARRAY_A );
+		$out  = array();
+		foreach ( $rows as $row ) {
+			$out[ $row['engine'] ] = (float) $row['cost'];
+		}
+		return $out;
 	}
 }

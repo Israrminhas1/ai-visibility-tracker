@@ -4,7 +4,7 @@ Tags: ai visibility, aeo, chatgpt, llms.txt, ai search
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,15 @@ No data is sent to the plugin author. The readiness audit loads your own robots.
 
 = How much does it cost? =
 
-The plugin is free. Each engine charges you for API usage on your own account. A check of 10 prompts on one engine typically costs a few cents to a few tens of cents, depending on the model.
+The plugin is free. Each engine charges you for API usage on your own account. Before every check the plugin shows what it will cost, and each check's real cost is shown after it (tokens plus web searches). Typical cost of one answer with the default models: ChatGPT about $0.015, Perplexity about $0.01, Gemini about $0.07, Claude about $0.09 and Grok about $0.30. Set a monthly budget in Settings and checks that would go over it don't start.
+
+= Can I export the data? =
+
+Yes. The Results, Prompts and AI Traffic pages each have an Export CSV button.
+
+= How long is data kept? =
+
+The most recent 52 checks by default (change it in Settings); older checks are deleted with their answers. You can delete any check from the Results page. AI traffic totals are kept for 400 days.
 
 = Are the results the same as in the ChatGPT app? =
 
@@ -101,7 +109,7 @@ Crawlers don't run JavaScript, so their visits are counted by WordPress itself. 
 
 = Where is my API key stored? =
 
-In your WordPress database, encrypted with a key derived from your site's secret salts. It is never shown in full again and never sent anywhere except to its own provider.
+In your WordPress database, encrypted with a key derived from your site's secret salts. It is never shown in full again and never sent anywhere except to its own provider. To keep the encryption key out of the database entirely, add `define( 'AIVT_ENCRYPTION_KEY', 'a-long-random-string' );` to wp-config.php before saving your keys. If the salts change (for example after moving the site), Settings asks you to paste the keys again.
 
 == Screenshots ==
 
@@ -114,6 +122,17 @@ In your WordPress database, encrypted with a key derived from your site's secret
 7. AI engine settings.
 
 == Changelog ==
+
+= 0.3.0 =
+* Cost: the estimated cost is shown before each check, and the real cost (tokens and web searches) after it. Optional monthly budget.
+* A bad API key or an empty balance stops that engine for the rest of the check instead of failing every prompt in turn. Rate limits and outages are retried.
+* Checks keep going in the background even if a request is cut off by the host, and never retry the same answer forever or save it twice.
+* Settings are one form: saving never loses changes made in another section.
+* Export CSV for results, prompts and AI traffic. Delete a check. Choose how many checks to keep.
+* Competitors you track are always found in answers. Brand names in any script are recognised. Apple, Amazon, Google and similar companies are no longer excluded as competitors.
+* Gemini is asked to search before answering, so it cites sources. Default models: Claude Sonnet 5, Gemini 3.5 Flash.
+* AI traffic can no longer be inflated or used to fill the database by outside requests.
+* Errors show as errors, not green notices. Works with WordPress 6.7+ translation loading. Multisite uninstall removes data from every site.
 
 = 0.2.0 =
 * Visibility score that rewards links over mentions.

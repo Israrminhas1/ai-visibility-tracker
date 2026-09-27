@@ -75,6 +75,9 @@ class Crypto {
 	 * @return string Raw 32-byte key.
 	 */
 	private static function key( $purpose ) {
-		return hash_hmac( 'sha256', 'aivt-' . $purpose, wp_salt( 'secure_auth' ), true );
+		// A constant in wp-config.php keeps the key out of the database entirely
+		// (wp_salt() falls back to salts stored in the database when wp-config has none).
+		$secret = defined( 'AIVT_ENCRYPTION_KEY' ) && '' !== (string) AIVT_ENCRYPTION_KEY ? (string) AIVT_ENCRYPTION_KEY : wp_salt( 'secure_auth' );
+		return hash_hmac( 'sha256', 'aivt-' . $purpose, $secret, true );
 	}
 }

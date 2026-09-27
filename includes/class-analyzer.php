@@ -70,9 +70,31 @@ class Analyzer {
 			);
 		}
 
-		$seen = array_map( array( __CLASS__, 'normalize_name' ), $brand_names );
-		foreach ( $this->extract_brands( $text ) as $b ) {
-			$key = self::normalize_name( $b['name'] );
+		$seen        = array_map( array( __CLASS__, 'normalize_name' ), $brand_names );
+		$competitors = array_filter( isset( $settings['competitors'] ) ? (array) $settings['competitors'] : array(), 'is_array' );
+		$tracked     = array();
+		foreach ( $competitors as $c ) {
+			$tracked[] = self::normalize_name( isset( $c['name'] ) ? $c['name'] : '' );
+		}
+
+		// Competitors you track are always looked for in the text, so they are
+		// found even when the AI extraction call fails or misses them.
+		$candidates = $this->extract_brands( $text );
+		foreach ( $competitors as $c ) {
+			if ( ! empty( $c['name'] ) && false !== self::first_offset( $text, array( $c['name'] ) ) ) {
+				$candidates[] = array(
+					'name'   => $c['name'],
+					'domain' => isset( $c['domain'] ) ? $c['domain'] : '',
+				);
+			}
+		}
+
+		foreach ( $candidates as $b ) {
+			if ( ! is_array( $b ) || ! isset( $b['name'] ) ) {
+				continue;
+			}
+			$b['domain'] = isset( $b['domain'] ) ? (string) $b['domain'] : '';
+			$key         = self::normalize_name( $b['name'] );
 			if ( '' === $key || in_array( $key, $seen, true ) ) {
 				continue;
 			}
@@ -80,8 +102,12 @@ class Analyzer {
 			if ( '' !== $domain && self::domain_matches( $domain, $brand_domains ) ) {
 				continue; // It's the user's own brand under another name.
 			}
-			if ( self::is_platform( $domain ) || self::is_platform_name( $b['name'] ) ) {
-				continue; // Reddit, Wikipedia, YouTube... are places, not competitors.
+			if ( false !== self::first_offset( $b['name'], $brand_names ) ) {
+				continue; // "Acme Bakery Ltd" when the brand is "Acme".
+			}
+			// Reddit, Wikipedia, review sites... are places, not competitors, unless you track them.
+			if ( ! in_array( $key, $tracked, true ) && ( self::is_platform( $domain ) || self::is_platform_name( $b['name'] ) ) ) {
+				continue;
 			}
 			$seen[] = $key;
 			$offset = self::first_offset( $text, array( $b['name'] ) );
@@ -193,7 +219,8 @@ class Analyzer {
 			if ( '' === $needle ) {
 				continue;
 			}
-			$pattern = '/(?<![\p{L}\p{N}])' . preg_quote( $needle, '/' ) . '(?![\p{L}\p{N}])/iu';
+			// Not inside a longer word or domain: "acme.com" must not match "acme.com.au".
+			$pattern = '/(?<![\p{L}\p{N}])' . preg_quote( $needle, '/' ) . '(?!\.?[\p{L}\p{N}])/iu';
 			if ( preg_match( $pattern, $text, $m, PREG_OFFSET_CAPTURE ) ) {
 				if ( false === $best || $m[0][1] < $best ) {
 					$best = $m[0][1];
@@ -251,9 +278,10 @@ class Analyzer {
 	 * @return string
 	 */
 	public static function normalize_name( $name ) {
-		$name = strtolower( remove_accents( (string) $name ) );
-		$name = preg_replace( '/\b(inc|llc|ltd|limited|gmbh|co|corp|corporation|plc|sa|bv|ag)\b\.?/', '', $name );
-		return preg_replace( '/[^a-z0-9]/', '', $name );
+		$name = mb_strtolower( remove_accents( (string) $name ), 'UTF-8' );
+		$name = preg_replace( '/(?<![\p{L}\p{N}])(inc|llc|ltd|limited|gmbh|co|corp|corporation|plc|sa|bv|ag)(?![\p{L}\p{N}])\.?/u', '', $name );
+		// Letters and digits in any script: "Яндекс" and "美团" are names too.
+		return (string) preg_replace( '/[^\p{L}\p{N}]/u', '', (string) $name );
 	}
 
 	/**
@@ -278,15 +306,15 @@ class Analyzer {
 	);
 
 	/**
-	 * Big platforms that AI cites as sources but that are not competitors.
+	 * Reference, review, directory and news sites that AI cites as sources but
+	 * that are never competitors. Companies such as Apple, Amazon or Google are
+	 * not listed: in some markets they are the competition.
 	 */
 	const PLATFORMS = array(
-		'wikipedia.org', 'wikimedia.org', 'wikihow.com', 'google.com', 'bing.com', 'apple.com',
-		'amazon.com', 'ebay.com', 'yelp.com', 'tripadvisor.com', 'trustpilot.com', 'g2.com',
-		'capterra.com', 'github.com', 'forbes.com', 'nytimes.com', 'bbc.co.uk', 'bbc.com',
-		'cnn.com', 'theguardian.com', 'businessinsider.com', 'investopedia.com', 'healthline.com',
+		'wikipedia.org', 'wikimedia.org', 'wikihow.com', 'yelp.com', 'tripadvisor.com', 'trustpilot.com',
+		'g2.com', 'capterra.com', 'getapp.com', 'softwareadvice.com', 'forbes.com', 'nytimes.com', 'bbc.co.uk',
+		'bbc.com', 'cnn.com', 'theguardian.com', 'businessinsider.com', 'investopedia.com', 'healthline.com',
 		'webmd.com', 'mayoclinic.org', 'nih.gov', 'yellowpages.com', 'bbb.org', 'glassdoor.com',
-		'indeed.com', 'openai.com', 'chatgpt.com', 'perplexity.ai', 'anthropic.com', 'claude.ai',
 	);
 
 	/**

@@ -43,13 +43,16 @@ class Gemini_Provider extends Base_Provider {
 	public function ask( $prompt ) {
 		$res = $this->generate(
 			array(
-				'contents' => array(
+				// Gemini decides per question whether to search; without this it often
+				// answers from memory, with no sources.
+				'systemInstruction' => array( 'parts' => array( array( 'text' => 'Always use Google Search to find current information before answering. Base your answer on the search results.' ) ) ),
+				'contents'          => array(
 					array(
 						'role'  => 'user',
 						'parts' => array( array( 'text' => (string) $prompt ) ),
 					),
 				),
-				'tools'    => array( array( 'google_search' => new \stdClass() ) ),
+				'tools'             => array( array( 'google_search' => new \stdClass() ) ),
 			)
 		);
 		if ( is_wp_error( $res ) ) {
@@ -73,7 +76,11 @@ class Gemini_Provider extends Base_Provider {
 			$url   = self::clean_url( $chunk['web']['uri'] );
 			$title = isset( $chunk['web']['title'] ) ? sanitize_text_field( $chunk['web']['title'] ) : '';
 			// Gemini links through a Google redirect; the title holds the real site's domain.
-			if ( false !== strpos( $url, 'vertexaisearch.cloud.google.com' ) && preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}$/i', $title ) ) {
+			// A redirect without one says nothing about the source, so it is skipped.
+			if ( false !== strpos( $url, 'vertexaisearch.cloud.google.com' ) ) {
+				if ( ! preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}$/i', $title ) ) {
+					continue;
+				}
 				$url = 'https://' . strtolower( $title ) . '/';
 			}
 			if ( '' !== $url && ! isset( $citations[ $url ] ) ) {
@@ -88,8 +95,23 @@ class Gemini_Provider extends Base_Provider {
 			'text'          => $text,
 			'citations'     => array_values( $citations ),
 			'input_tokens'  => isset( $res['usageMetadata']['promptTokenCount'] ) ? (int) $res['usageMetadata']['promptTokenCount'] : 0,
-			'output_tokens' => isset( $res['usageMetadata']['candidatesTokenCount'] ) ? (int) $res['usageMetadata']['candidatesTokenCount'] : 0,
+			// Thinking is billed as output but reported separately.
+			'output_tokens' => ( isset( $res['usageMetadata']['candidatesTokenCount'] ) ? (int) $res['usageMetadata']['candidatesTokenCount'] : 0 )
+				+ ( isset( $res['usageMetadata']['thoughtsTokenCount'] ) ? (int) $res['usageMetadata']['thoughtsTokenCount'] : 0 ),
+			// Gemini 3 bills each search query; 2.5 models bill once per grounded answer.
+			'searches'      => $this->search_count( $candidate ),
 		);
+	}
+
+	/**
+	 * Billed searches for an answer.
+	 *
+	 * @param array $candidate Candidate.
+	 * @return int
+	 */
+	private function search_count( array $candidate ) {
+		$queries = isset( $candidate['groundingMetadata']['webSearchQueries'] ) ? count( (array) $candidate['groundingMetadata']['webSearchQueries'] ) : 0;
+		return 0 === strpos( $this->model, 'gemini-2' ) ? min( 1, $queries ) : $queries;
 	}
 
 	/**

@@ -14,6 +14,7 @@ use AIVT\Readiness;
 use AIVT\Repository;
 use AIVT\Rest;
 use AIVT\Settings;
+use AIVT\Traffic;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,7 +50,7 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( AIVT_FILE ), array( $this, 'action_links' ) );
 
-		foreach ( array( 'save_settings', 'save_engines', 'add_prompts', 'prompt_action', 'competitor', 'audit' ) as $action ) {
+		foreach ( array( 'save_settings', 'save_engines', 'add_prompts', 'prompt_action', 'competitor', 'audit', 'export', 'delete_run' ) as $action ) {
 			add_action( 'admin_post_aivt_' . $action, array( $this, 'handle_' . $action ) );
 		}
 	}
@@ -108,14 +109,22 @@ class Admin {
 					'testing'      => __( 'Testing…', 'ai-visibility-tracker' ),
 					'generating'   => __( 'Generating prompts… this can take up to a minute.', 'ai-visibility-tracker' ),
 					'starting'     => __( 'Starting…', 'ai-visibility-tracker' ),
+					/* translators: 1: answers checked so far, 2: answers in the run */
 					'progress'     => __( '%1$d of %2$d answers checked', 'ai-visibility-tracker' ),
 					'done'         => __( 'Run complete. Refreshing…', 'ai-visibility-tracker' ),
 					'error'        => __( 'Something went wrong.', 'ai-visibility-tracker' ),
+					/* translators: %s: estimated cost, e.g. $0.42 */
+					'confirmRun'   => __( 'Run a check now? It will cost about %s on your AI accounts.', 'ai-visibility-tracker' ),
+					'sessionExpired'        => __( 'Your login has expired. Reload the page to continue; the check carries on in the background.', 'ai-visibility-tracker' ),
+					'continuesInBackground' => __( 'The check carries on in the background.', 'ai-visibility-tracker' ),
+					/* translators: %d: number of prompts */
+					'generated'    => __( 'New prompts added: %d. Refreshing…', 'ai-visibility-tracker' ),
 					'confirmStop'  => __( 'Stop this run? Answers already checked are kept.', 'ai-visibility-tracker' ),
 					'confirmDel'   => __( 'Delete this prompt?', 'ai-visibility-tracker' ),
 					'loading'      => __( 'Loading…', 'ai-visibility-tracker' ),
 					'mentioned'    => __( 'Mentioned', 'ai-visibility-tracker' ),
 					'notMentioned' => __( 'Not mentioned', 'ai-visibility-tracker' ),
+					/* translators: %d: rank among the brands in the answer */
 					'position'     => __( 'Position #%d', 'ai-visibility-tracker' ),
 					'cited'        => __( 'Your site is cited', 'ai-visibility-tracker' ),
 					'sources'      => __( 'Sources cited', 'ai-visibility-tracker' ),
@@ -126,10 +135,10 @@ class Admin {
 					'competitor'   => __( 'Competitor', 'ai-visibility-tracker' ),
 					'source'       => __( 'Source', 'ai-visibility-tracker' ),
 					'social'       => __( 'Social', 'ai-visibility-tracker' ),
-					'yourPage'     => __( 'Your page', 'ai-visibility-tracker' ),
 					'editPage'     => __( 'Edit page', 'ai-visibility-tracker' ),
 					'suggesting'   => __( 'Asking AI for other names…', 'ai-visibility-tracker' ),
 					'noNames'      => __( 'No new names suggested.', 'ai-visibility-tracker' ),
+					/* translators: %s: comma-separated names */
 					'namesAdded'   => __( 'Added: %s. Review them, then save.', 'ai-visibility-tracker' ),
 				),
 			)
@@ -198,6 +207,85 @@ class Admin {
 	}
 
 	/**
+	 * Link that runs an admin-post action (with its nonce).
+	 *
+	 * @param string $action Action without the aivt_ prefix.
+	 * @param array  $args   Extra query args.
+	 * @return string
+	 */
+	public static function action_url( $action, array $args = array() ) {
+		return wp_nonce_url( add_query_arg( array_merge( array( 'action' => 'aivt_' . $action ), $args ), admin_url( 'admin-post.php' ) ), 'aivt_' . $action );
+	}
+
+	/**
+	 * Download a CSV: the answers of a check, the prompts, or AI traffic.
+	 */
+	public function handle_export() {
+		$this->verify( 'export' );
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- verified above.
+		$what = isset( $_GET['what'] ) ? sanitize_key( $_GET['what'] ) : '';
+		$run  = isset( $_GET['run'] ) ? absint( $_GET['run'] ) : 0;
+		// phpcs:enable
+		$repo = new Repository();
+		$rows = array();
+
+		if ( 'results' === $what && $run ) {
+			$rows[] = array( 'prompt', 'topic', 'engine', 'model', 'status', 'brand_mentioned', 'brand_cited', 'position', 'cost_usd', 'error', 'answered_at_utc' );
+			foreach ( $repo->results( $run ) as $r ) {
+				$rows[] = array( $r['prompt'], $r['topic'], Engines::label( $r['engine'] ), $r['model'], $r['status'], $r['brand_mentioned'] ? 'yes' : 'no', $r['brand_cited'] ? 'yes' : 'no', $r['brand_position'], $r['cost'], $r['error'], $r['completed_at'] );
+			}
+		} elseif ( 'prompts' === $what ) {
+			$rows[] = array( 'prompt', 'topic', 'intent', 'source', 'active', 'created_at_utc' );
+			foreach ( $repo->prompts() as $p ) {
+				$rows[] = array( $p['prompt'], $p['topic'], $p['intent'], $p['source'], $p['active'] ? 'yes' : 'no', $p['created_at'] );
+			}
+		} elseif ( 'traffic' === $what ) {
+			$rows[] = array( 'day', 'kind', 'source', 'path', 'hits' );
+			foreach ( $repo->traffic_rows( gmdate( 'Y-m-d', strtotime( '-400 days' ) ) ) as $t ) {
+				$rows[] = array( $t['day'], $t['kind'], 'referral' === $t['kind'] ? Traffic::source_label( $t['source'] ) : $t['source'], $t['path'], $t['hits'] );
+			}
+		} else {
+			wp_die( esc_html__( 'Nothing to export.', 'ai-visibility-tracker' ), 400 );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="ai-visibility-' . $what . ( $run ? '-' . $run : '' ) . '-' . gmdate( 'Y-m-d' ) . '.csv"' );
+		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		fwrite( $out, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- BOM so Excel reads UTF-8.
+		foreach ( $rows as $row ) {
+			fputcsv( $out, array_map( array( __CLASS__, 'csv_cell' ), $row ) );
+		}
+		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		exit;
+	}
+
+	/**
+	 * A CSV cell that spreadsheets won't run as a formula.
+	 *
+	 * @param mixed $value Value.
+	 * @return string
+	 */
+	public static function csv_cell( $value ) {
+		$value = (string) $value;
+		return '' !== $value && false !== strpos( '=+-@', $value[0] ) ? "'" . $value : $value;
+	}
+
+	/**
+	 * Delete one check and its answers.
+	 */
+	public function handle_delete_run() {
+		$this->verify( 'delete_run' );
+		$run  = isset( $_GET['run'] ) ? absint( $_GET['run'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified above.
+		$repo = new Repository();
+		if ( $run && $repo->run( $run ) ) {
+			$repo->cancel_run( $run );
+			$repo->delete_run( $run );
+		}
+		$this->redirect( 'aivt-results', __( 'Check deleted.', 'ai-visibility-tracker' ) );
+	}
+
+	/**
 	 * Save brand, business and schedule settings.
 	 */
 	public function handle_save_settings() {
@@ -229,8 +317,13 @@ class Admin {
 				'track_traffic' => ! empty( $post['track_traffic'] ),
 				'llms_enabled'  => ! empty( $post['llms_enabled'] ),
 				'llms_intro'    => isset( $post['llms_intro'] ) ? sanitize_textarea_field( $post['llms_intro'] ) : '',
+				'monthly_budget' => isset( $post['monthly_budget'] ) && '' !== $post['monthly_budget'] ? max( 0, round( (float) $post['monthly_budget'], 2 ) ) : 0,
+				'keep_runs'      => isset( $post['keep_runs'] ) ? min( 500, max( 1, absint( $post['keep_runs'] ) ) ) : 52,
 			)
 		);
+		if ( isset( $post['engines'] ) && is_array( $post['engines'] ) ) {
+			$this->save_engines( $post['engines'] );
+		}
 		// phpcs:enable
 		\AIVT\Runner::sync_schedule();
 		Llms_Txt::flush();
@@ -245,7 +338,16 @@ class Admin {
 		$this->verify( 'save_engines' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 		$input = isset( $_POST['engines'] ) && is_array( $_POST['engines'] ) ? wp_unslash( $_POST['engines'] ) : array();
+		$this->save_engines( $input );
+		$this->redirect( 'aivt-settings', __( 'AI engines saved.', 'ai-visibility-tracker' ) );
+	}
 
+	/**
+	 * Save engine keys, models and enabled flags from the settings form.
+	 *
+	 * @param array $input Unslashed engines input.
+	 */
+	private function save_engines( array $input ) {
 		foreach ( array_keys( Engines::all() ) as $id ) {
 			$e      = isset( $input[ $id ] ) ? (array) $input[ $id ] : array();
 			$key    = isset( $e['key'] ) ? Rest::sanitize_key_input( $e['key'] ) : '';
@@ -257,7 +359,6 @@ class Admin {
 				isset( $e['model'] ) ? sanitize_text_field( $e['model'] ) : ''
 			);
 		}
-		$this->redirect( 'aivt-settings', __( 'AI engines saved.', 'ai-visibility-tracker' ) );
 	}
 
 	/**
@@ -351,9 +452,9 @@ class Admin {
 		$args = array();
 		if ( $url ) {
 			if ( self::is_site_url( $url ) ) {
-				$args['url'] = $url;
+				$args['url'] = self::site_url_for( $url );
 			} else {
-				$this->redirect( 'aivt-readiness', __( 'Please enter a page on this website.', 'ai-visibility-tracker' ) );
+				$this->redirect( 'aivt-readiness', __( 'Please enter a page on this website.', 'ai-visibility-tracker' ), array(), 'error' );
 			}
 		}
 		Readiness::flush();
@@ -367,7 +468,31 @@ class Admin {
 	 * @return bool
 	 */
 	public static function is_site_url( $url ) {
-		return Analyzer::normalize_domain( $url ) === Analyzer::normalize_domain( home_url() );
+		return '' !== self::site_url_for( $url );
+	}
+
+	/**
+	 * The same page on this site's own address: the path and query of $url on
+	 * home_url()'s scheme, host and port. Only pages of this site can be
+	 * audited, whatever port or scheme the given URL names. '' when $url is
+	 * not on this site's domain.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	public static function site_url_for( $url ) {
+		if ( Analyzer::normalize_domain( $url ) !== Analyzer::normalize_domain( home_url() ) ) {
+			return '';
+		}
+		$path  = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$query = (string) wp_parse_url( $url, PHP_URL_QUERY );
+		$home  = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+
+		// home_url() may include a subdirectory; don't repeat it.
+		if ( '' !== trim( $home, '/' ) && 0 === strpos( $path, rtrim( $home, '/' ) ) ) {
+			$path = substr( $path, strlen( rtrim( $home, '/' ) ) );
+		}
+		return home_url( '/' . ltrim( $path, '/' ) ) . ( '' !== $query ? '?' . $query : '' );
 	}
 
 	/**
@@ -376,9 +501,17 @@ class Admin {
 	 * @param string $page    Page slug.
 	 * @param string $message Notice.
 	 * @param array  $args    Extra query args.
+	 * @param string $type    success, warning or error.
 	 */
-	private function redirect( $page, $message, array $args = array() ) {
-		set_transient( 'aivt_notice_' . get_current_user_id(), $message, 60 );
+	private function redirect( $page, $message, array $args = array(), $type = 'success' ) {
+		set_transient(
+			'aivt_notice_' . get_current_user_id(),
+			array(
+				'message' => $message,
+				'type'    => $type,
+			),
+			60
+		);
 		wp_safe_redirect( self::url( $page, $args ) );
 		exit;
 	}
@@ -388,11 +521,14 @@ class Admin {
 	 */
 	private function notice() {
 		$key = 'aivt_notice_' . get_current_user_id();
-		$msg = get_transient( $key );
-		if ( $msg ) {
-			delete_transient( $key );
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
+		$notice = get_transient( $key );
+		if ( ! $notice ) {
+			return;
 		}
+		delete_transient( $key );
+		$message = is_array( $notice ) ? (string) $notice['message'] : (string) $notice;
+		$type    = is_array( $notice ) && in_array( $notice['type'], array( 'success', 'warning', 'error' ), true ) ? $notice['type'] : 'success';
+		echo '<div class="notice notice-' . esc_attr( $type ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 	}
 
 	/* ---------------------------------------------------------------------

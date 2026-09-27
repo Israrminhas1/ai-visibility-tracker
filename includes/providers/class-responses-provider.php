@@ -66,7 +66,30 @@ abstract class Responses_Provider extends Base_Provider {
 			'citations'     => array_values( $citations ),
 			'input_tokens'  => isset( $res['usage']['input_tokens'] ) ? (int) $res['usage']['input_tokens'] : 0,
 			'output_tokens' => isset( $res['usage']['output_tokens'] ) ? (int) $res['usage']['output_tokens'] : 0,
+			'searches'      => $this->search_count( $res ),
+			'reported_cost' => isset( $res['usage']['cost']['total_cost'] ) ? (float) $res['usage']['cost']['total_cost'] : null,
 		);
+	}
+
+	/**
+	 * Web searches the answer used: search calls in the output, or the
+	 * provider's own count (Perplexity reports "search_web" invocations).
+	 *
+	 * @param array $res Response.
+	 * @return int
+	 */
+	protected function search_count( array $res ) {
+		if ( isset( $res['usage']['tool_calls_details']['search_web']['invocation'] ) ) {
+			return (int) $res['usage']['tool_calls_details']['search_web']['invocation'];
+		}
+
+		$count = 0;
+		foreach ( isset( $res['output'] ) && is_array( $res['output'] ) ? $res['output'] : array() as $item ) {
+			if ( isset( $item['type'] ) && false !== strpos( (string) $item['type'], 'search_call' ) ) {
+				$count++;
+			}
+		}
+		return $count;
 	}
 
 	/**

@@ -132,6 +132,9 @@ $aivt_can_generate = (bool) Engines::active();
 				<noscript><button type="submit" class="button"><?php esc_html_e( 'Filter', 'ai-visibility-tracker' ); ?></button></noscript>
 			</form>
 		<?php endif; ?>
+		<?php if ( $aivt_prompts ) : ?>
+			<a class="button" href="<?php echo esc_url( Admin::action_url( 'export', array( 'what' => 'prompts' ) ) ); ?>"><?php esc_html_e( 'Export CSV', 'ai-visibility-tracker' ); ?></a>
+		<?php endif; ?>
 	</div>
 	<?php if ( $aivt_run ) : ?>
 		<p class="aivt-muted"><?php esc_html_e( 'Dots show the latest check: filled = your brand was mentioned. Click one to read the answer.', 'ai-visibility-tracker' ); ?></p>

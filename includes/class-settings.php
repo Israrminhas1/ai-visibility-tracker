@@ -36,6 +36,10 @@ class Settings {
 			'track_traffic' => true,
 			'llms_enabled'  => false,
 			'llms_intro'    => '',
+			// USD per calendar month; 0 means no budget.
+			'monthly_budget' => 0,
+			// Completed runs to keep; older ones are deleted with their answers.
+			'keep_runs'      => 52,
 		);
 	}
 
@@ -117,6 +121,18 @@ class Settings {
 	public static function engine_key( $id ) {
 		$cfg = self::engine( $id );
 		return Crypto::decrypt( (string) $cfg['key'] );
+	}
+
+	/**
+	 * Whether a key is saved but can no longer be decrypted (the site's salts
+	 * changed, e.g. after a migration). It has to be entered again.
+	 *
+	 * @param string $id Engine ID.
+	 * @return bool
+	 */
+	public static function key_unreadable( $id ) {
+		$cfg = self::engine( $id );
+		return '' !== (string) $cfg['key'] && '' === self::engine_key( $id );
 	}
 
 	/**

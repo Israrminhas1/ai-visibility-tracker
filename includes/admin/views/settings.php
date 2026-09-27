@@ -37,8 +37,11 @@ $aivt_countries = array(
 );
 ?>
 
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="aivt-card">
-	<?php Admin::form_fields( 'save_engines' ); ?>
+<?php // One form for everything, so saving never drops changes made in another section. ?>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="aivt-settings-form">
+<?php Admin::form_fields( 'save_settings' ); ?>
+
+<div class="aivt-card">
 	<h2><?php esc_html_e( 'AI engines', 'ai-visibility-tracker' ); ?></h2>
 	<p class="aivt-muted"><?php esc_html_e( 'Turn on the engines you want to track and add your own API key for each. Keys are stored encrypted and only sent to that provider. You pay the provider directly for usage.', 'ai-visibility-tracker' ); ?></p>
 
@@ -60,6 +63,10 @@ $aivt_countries = array(
 						<span><?php esc_html_e( 'Track', 'ai-visibility-tracker' ); ?></span>
 					</label>
 				</div>
+
+				<?php if ( Settings::key_unreadable( $aivt_id ) ) : ?>
+					<p class="aivt-warning" role="alert"><?php esc_html_e( 'The saved key can no longer be read, usually because the site moved or its security keys changed. Paste it again.', 'ai-visibility-tracker' ); ?></p>
+				<?php endif; ?>
 
 				<label class="aivt-field">
 					<span><?php esc_html_e( 'API key', 'ai-visibility-tracker' ); ?></span>
@@ -100,11 +107,9 @@ $aivt_countries = array(
 			</fieldset>
 		<?php endforeach; ?>
 	</div>
-	<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Save AI engines', 'ai-visibility-tracker' ); ?></button></p>
-</form>
+</div>
 
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="aivt-card" id="brand">
-	<?php Admin::form_fields( 'save_settings' ); ?>
+<div class="aivt-card" id="brand">
 	<h2><?php esc_html_e( 'Your brand', 'ai-visibility-tracker' ); ?></h2>
 	<table class="form-table" role="presentation">
 		<tr>
@@ -176,6 +181,30 @@ $aivt_countries = array(
 				</fieldset>
 			</td>
 		</tr>
+		<tr>
+			<th scope="row"><label for="aivt-budget"><?php esc_html_e( 'Monthly budget (USD)', 'ai-visibility-tracker' ); ?></label></th>
+			<td>
+				<input type="number" id="aivt-budget" name="monthly_budget" min="0" step="0.5" value="<?php echo esc_attr( (float) $settings['monthly_budget'] > 0 ? $settings['monthly_budget'] : '' ); ?>" class="small-text" placeholder="<?php esc_attr_e( 'none', 'ai-visibility-tracker' ); ?>">
+				<p class="description">
+					<?php
+					$aivt_repo = new \AIVT\Repository();
+					printf(
+						/* translators: 1: estimated cost of one check, 2: amount spent this month */
+						esc_html__( 'A check that would go over it does not start. One check now costs about %1$s; %2$s spent this month.', 'ai-visibility-tracker' ),
+						esc_html( \AIVT\Pricing::format( \AIVT\Runner::estimate() ) ),
+						esc_html( \AIVT\Pricing::format( $aivt_repo->spent_since( gmdate( 'Y-m-01 00:00:00' ) ) ) )
+					);
+					?>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="aivt-keep"><?php esc_html_e( 'Keep checks', 'ai-visibility-tracker' ); ?></label></th>
+			<td>
+				<input type="number" id="aivt-keep" name="keep_runs" min="1" max="500" step="1" value="<?php echo esc_attr( (int) $settings['keep_runs'] ); ?>" class="small-text">
+				<p class="description"><?php esc_html_e( 'The most recent checks to keep. Older ones are deleted with their answers.', 'ai-visibility-tracker' ); ?></p>
+			</td>
+		</tr>
 	</table>
 
 	<h2 id="tracking"><?php esc_html_e( 'AI traffic', 'ai-visibility-tracker' ); ?></h2>
@@ -215,7 +244,9 @@ $aivt_countries = array(
 			</td>
 		</tr>
 	</table>
-	<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Save settings', 'ai-visibility-tracker' ); ?></button></p>
+</div>
+
+<p class="aivt-save-bar"><button type="submit" class="button button-primary"><?php esc_html_e( 'Save settings', 'ai-visibility-tracker' ); ?></button></p>
 </form>
 
 <section class="aivt-card" id="competitors">

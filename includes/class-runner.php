@@ -81,22 +81,110 @@ class Runner {
 	public function start( $trigger = 'manual' ) {
 		$repo = new Repository();
 
-		$active = $repo->active_run();
-		if ( $active ) {
-			return new WP_Error( 'aivt_running', __( 'A run is already in progress.', 'ai-visibility-tracker' ), array( 'run' => $active ) );
-		}
-		$engines = Engines::active();
-		if ( ! $engines ) {
-			return new WP_Error( 'aivt_no_engine', __( 'Connect and enable at least one AI engine in Settings first.', 'ai-visibility-tracker' ) );
-		}
-		$prompts = $repo->prompts( true );
-		if ( ! $prompts ) {
-			return new WP_Error( 'aivt_no_prompts', __( 'Add or generate some prompts first.', 'ai-visibility-tracker' ) );
+		// A scheduled run and a click can arrive together: only one may create a run.
+		if ( ! self::lock() ) {
+			return new WP_Error( 'aivt_running', __( 'A run is already starting.', 'ai-visibility-tracker' ) );
 		}
 
-		$run_id = $repo->create_run( $trigger, $engines, $prompts );
+		try {
+			$active = $repo->active_run();
+			if ( $active ) {
+				return new WP_Error( 'aivt_running', __( 'A run is already in progress.', 'ai-visibility-tracker' ), array( 'run' => $active ) );
+			}
+			$engines = Engines::active();
+			if ( ! $engines ) {
+				return new WP_Error( 'aivt_no_engine', __( 'Connect and enable at least one AI engine in Settings first.', 'ai-visibility-tracker' ) );
+			}
+			$prompts = $repo->prompts( true );
+			if ( ! $prompts ) {
+				return new WP_Error( 'aivt_no_prompts', __( 'Add or generate some prompts first.', 'ai-visibility-tracker' ) );
+			}
+
+			$budget = self::budget_problem( $engines, count( $prompts ) );
+			if ( $budget ) {
+				return new WP_Error( 'aivt_budget', $budget );
+			}
+
+			$run_id = $repo->create_run( $trigger, $engines, $prompts );
+		} finally {
+			self::unlock();
+		}
+
 		$this->schedule_processing( 5 );
 		return $repo->run( $run_id );
+	}
+
+	/**
+	 * Estimated cost of a run over the active prompts and engines.
+	 *
+	 * @param array|null $engines Engine keys (default: active engines).
+	 * @param int|null   $prompts Number of prompts (default: active prompts).
+	 * @return float USD.
+	 */
+	public static function estimate( $engines = null, $prompts = null ) {
+		$repo    = new Repository();
+		$engines = null === $engines ? Engines::active() : $engines;
+		$prompts = null === $prompts ? count( $repo->prompts( true ) ) : (int) $prompts;
+		$total   = 0.0;
+
+		foreach ( $engines as $engine ) {
+			$cfg = Settings::engine( $engine );
+			// Learned from recent answers once there are some; the typical cost until then.
+			$per    = $repo->average_cost( $engine, $cfg['model'] );
+			$total += $prompts * ( null !== $per ? $per : Pricing::typical_answer( $engine, $cfg['model'] ) );
+		}
+		return $total;
+	}
+
+	/**
+	 * Why a run would go over the monthly budget, or '' when it fits (or there is no budget).
+	 *
+	 * @param array $engines Engine keys.
+	 * @param int   $prompts Number of prompts.
+	 * @return string
+	 */
+	public static function budget_problem( array $engines, $prompts ) {
+		$budget = (float) Settings::get( 'monthly_budget' );
+		if ( $budget <= 0 ) {
+			return '';
+		}
+
+		$spent    = ( new Repository() )->spent_since( gmdate( 'Y-m-01 00:00:00' ) );
+		$estimate = self::estimate( $engines, $prompts );
+		if ( $spent + $estimate <= $budget ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: 1: estimated cost of the run, 2: amount spent this month, 3: monthly budget */
+			__( 'This run would cost about %1$s, but %2$s of the %3$s monthly budget is already spent. Raise the budget in Settings, or remove prompts or engines.', 'ai-visibility-tracker' ),
+			Pricing::format( $estimate ),
+			Pricing::format( $spent ),
+			Pricing::format( $budget )
+		);
+	}
+
+	/**
+	 * Take the start lock. A lock older than a minute is left over from a crash.
+	 *
+	 * @return bool
+	 */
+	private static function lock() {
+		if ( add_option( 'aivt_start_lock', time(), '', false ) ) {
+			return true;
+		}
+		if ( (int) get_option( 'aivt_start_lock' ) < time() - MINUTE_IN_SECONDS ) {
+			delete_option( 'aivt_start_lock' );
+			return add_option( 'aivt_start_lock', time(), '', false );
+		}
+		return false;
+	}
+
+	/**
+	 * Release the start lock.
+	 */
+	private static function unlock() {
+		delete_option( 'aivt_start_lock' );
 	}
 
 	/**
@@ -115,7 +203,7 @@ class Runner {
 
 		$run = $repo->refresh_run( $run_id );
 		if ( $run && 'completed' === $run['status'] ) {
-			$repo->prune();
+			$repo->prune( max( 1, (int) Settings::get( 'keep_runs' ) ) );
 		}
 		return $run;
 	}
@@ -139,11 +227,30 @@ class Runner {
 
 		$answer = $provider->ask( $result['prompt'] );
 		if ( is_wp_error( $answer ) ) {
-			// A bad key won't fix itself, so don't spend a retry on it.
-			$auth_error = in_array( $answer->get_error_code(), array( 'aivt_http_401', 'aivt_http_403' ), true );
-			$repo->fail_result( $result, $answer->get_error_message(), $auth_error ? 0 : 2 );
+			$kind = Providers\Base_Provider::kind_of( $answer );
+
+			// A bad key or an empty balance won't fix itself: stop this engine for
+			// the rest of the run instead of failing each prompt in turn.
+			if ( in_array( $kind, array( Providers\Base_Provider::KIND_AUTH, Providers\Base_Provider::KIND_CREDITS ), true ) ) {
+				$repo->fail_result( $result, $answer->get_error_message(), 0 );
+				$repo->fail_engine( (int) $result['run_id'], $result['engine'], $answer->get_error_message() );
+				return;
+			}
+
+			// Rate limits and outages usually pass; other errors get one more try.
+			$temporary = in_array( $kind, array( Providers\Base_Provider::KIND_RATE, Providers\Base_Provider::KIND_OUTAGE ), true );
+			$repo->fail_result( $result, $answer->get_error_message(), $temporary ? Repository::MAX_ATTEMPTS : 2 );
 			return;
 		}
+
+		$answer['cost'] = Pricing::cost(
+			$result['engine'],
+			$result['model'],
+			(int) $answer['input_tokens'],
+			(int) $answer['output_tokens'],
+			isset( $answer['searches'] ) ? (int) $answer['searches'] : 0,
+			isset( $answer['reported_cost'] ) ? $answer['reported_cost'] : null
+		);
 
 		$analyzer = new Analyzer( Engines::utility_provider() );
 		$analysis = $analyzer->analyze( $answer['text'], $answer['citations'], Settings::all() );
@@ -161,13 +268,21 @@ class Runner {
 			return;
 		}
 
+		// Queue the next request first: if this one dies (host time limit, fatal
+		// error), the run still carries on without anyone opening the admin.
+		$this->schedule_processing( self::CRON_BUDGET + 120 );
+
 		$start = time();
 		while ( time() - $start < self::CRON_BUDGET ) {
 			$run = $this->step( (int) $run['id'] );
 			if ( ! $run || 'running' !== $run['status'] ) {
+				wp_clear_scheduled_hook( self::CRON_PROCESS );
 				return;
 			}
 		}
+
+		// Finished cleanly: carry on soon rather than waiting for the safety net.
+		wp_clear_scheduled_hook( self::CRON_PROCESS );
 		$this->schedule_processing( 10 );
 	}
 

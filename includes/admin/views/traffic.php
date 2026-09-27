@@ -109,7 +109,10 @@ $aivt_purpose = array(
 </section>
 
 <section class="aivt-card">
-	<h2><?php esc_html_e( 'Visitors from AI per day', 'ai-visibility-tracker' ); ?></h2>
+	<div class="aivt-card__head">
+		<h2><?php esc_html_e( 'Visitors from AI per day', 'ai-visibility-tracker' ); ?></h2>
+		<a class="button" href="<?php echo esc_url( Admin::action_url( 'export', array( 'what' => 'traffic' ) ) ); ?>"><?php esc_html_e( 'Export CSV', 'ai-visibility-tracker' ); ?></a>
+	</div>
 	<?php if ( ! $aivt_total ) : ?>
 		<p class="aivt-empty"><?php esc_html_e( 'No visitors from AI assistants in this period yet. When ChatGPT, Perplexity, Gemini or others link to your site and people click, they will show up here.', 'ai-visibility-tracker' ); ?></p>
 	<?php else : ?>

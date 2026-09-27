@@ -55,6 +55,7 @@ class Anthropic_Provider extends Base_Provider {
 		$blocks   = array();
 		$in       = 0;
 		$out      = 0;
+		$searches = 0;
 
 		for ( $i = 0; $i <= self::MAX_CONTINUATIONS; $i++ ) {
 			$res = $this->messages(
@@ -70,6 +71,7 @@ class Anthropic_Provider extends Base_Provider {
 
 			$in    += isset( $res['usage']['input_tokens'] ) ? (int) $res['usage']['input_tokens'] : 0;
 			$out   += isset( $res['usage']['output_tokens'] ) ? (int) $res['usage']['output_tokens'] : 0;
+			$searches += isset( $res['usage']['server_tool_use']['web_search_requests'] ) ? (int) $res['usage']['server_tool_use']['web_search_requests'] : 0;
 			$content = isset( $res['content'] ) && is_array( $res['content'] ) ? $res['content'] : array();
 			$blocks  = array_merge( $blocks, $content );
 
@@ -136,6 +138,7 @@ class Anthropic_Provider extends Base_Provider {
 			'citations'     => array_values( $citations ),
 			'input_tokens'  => $in,
 			'output_tokens' => $out,
+			'searches'      => $searches,
 		);
 	}
 

@@ -17,6 +17,16 @@ defined( 'ABSPATH' ) || exit;
 abstract class Base_Provider implements Provider {
 
 	/**
+	 * Error kinds, stored as "kind" in a WP_Error's data. Bad keys and empty
+	 * balances won't fix themselves; rate limits and outages usually do.
+	 */
+	const KIND_AUTH    = 'auth';
+	const KIND_CREDITS = 'credits';
+	const KIND_RATE    = 'rate';
+	const KIND_OUTAGE  = 'outage';
+	const KIND_REQUEST = 'request';
+
+	/**
 	 * API key.
 	 *
 	 * @var string
@@ -78,20 +88,69 @@ abstract class Base_Provider implements Provider {
 
 		$response = wp_remote_request( $url, $args );
 		if ( is_wp_error( $response ) ) {
+			// Timeouts and connection failures: worth trying again later.
+			$response->add_data( array( 'kind' => self::KIND_OUTAGE ) );
 			return $response;
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		$raw  = (string) wp_remote_retrieve_body( $response );
+		$data = json_decode( $raw, true );
 
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'aivt_http_' . $code, $this->error_message( $code, $data ), array( 'status' => $code ) );
+			$message = $this->error_message( $code, $data );
+			return new WP_Error(
+				'aivt_http_' . $code,
+				$message,
+				array(
+					'status' => $code,
+					'kind'   => self::error_kind( $code, $message . ' ' . $raw ),
+				)
+			);
 		}
 		if ( ! is_array( $data ) ) {
 			/* translators: %s: service name */
 			return new WP_Error( 'aivt_bad_response', sprintf( __( 'Unexpected response from %s.', 'ai-visibility-tracker' ), $this->label() ) );
 		}
 		return $data;
+	}
+
+	/**
+	 * What kind of failure an HTTP error is. Providers disagree on status codes
+	 * (Gemini sends a bad key as 400, OpenAI an empty balance as 429), so the
+	 * message is checked too.
+	 *
+	 * @param int    $code HTTP status.
+	 * @param string $text Error message and raw body.
+	 * @return string One of the KIND_* constants.
+	 */
+	public static function error_kind( $code, $text ) {
+		$text = strtolower( (string) $text );
+
+		if ( 401 === $code || 403 === $code || preg_match( '/api[_ ]?key[_ ]?invalid|api key not valid|invalid (x-)?api[- ]key|incorrect api key|invalid authentication|unauthenticated/', $text ) ) {
+			return self::KIND_AUTH;
+		}
+		if ( 402 === $code || preg_match( '/insufficient_quota|exceeded your current quota|credit balance|billing|out of credits|no credits|payment required|spending limit/', $text ) ) {
+			return self::KIND_CREDITS;
+		}
+		if ( 429 === $code ) {
+			return self::KIND_RATE;
+		}
+		if ( $code >= 500 || 408 === $code ) {
+			return self::KIND_OUTAGE;
+		}
+		return self::KIND_REQUEST;
+	}
+
+	/**
+	 * The kind of a provider error (see error_kind()).
+	 *
+	 * @param WP_Error $error Error.
+	 * @return string
+	 */
+	public static function kind_of( WP_Error $error ) {
+		$data = $error->get_error_data();
+		return is_array( $data ) && ! empty( $data['kind'] ) ? $data['kind'] : self::KIND_REQUEST;
 	}
 
 	/**

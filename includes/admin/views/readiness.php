@@ -13,10 +13,7 @@ use AIVT\Readiness;
 defined( 'ABSPATH' ) || exit;
 
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only; the URL is validated below.
-$aivt_url = isset( $_GET['url'] ) ? esc_url_raw( wp_unslash( $_GET['url'] ) ) : '';
-if ( $aivt_url && ! Admin::is_site_url( $aivt_url ) ) {
-	$aivt_url = '';
-}
+$aivt_url = isset( $_GET['url'] ) ? Admin::site_url_for( esc_url_raw( wp_unslash( $_GET['url'] ) ) ) : '';
 $aivt_report = ( new Readiness() )->audit( $aivt_url );
 $aivt_pct    = $aivt_report['total'] ? (int) round( 100 * $aivt_report['passed'] / $aivt_report['total'] ) : 0;
 

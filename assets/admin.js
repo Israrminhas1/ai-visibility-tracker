@@ -33,6 +33,7 @@
 				if ( ! res.ok ) {
 					var err = new Error( ( data && data.message ) || t.error );
 					err.data = data;
+					err.status = res.status;
 					throw err;
 				}
 				return data;
@@ -98,8 +99,9 @@
 			var count = parseInt( $( '#aivt-gen-count' ).value, 10 ) || 10;
 			gen.disabled = true;
 			setStatus( status, t.generating );
-			api( 'POST', '/prompts/generate', { count: count } ).then( function () {
-				window.location.reload();
+			api( 'POST', '/prompts/generate', { count: count } ).then( function ( data ) {
+				setStatus( status, sprintf( t.generated, ( data.prompts || [] ).length ), 'ok' );
+				window.setTimeout( function () { window.location.reload(); }, 1200 );
 			} ).catch( function ( e ) {
 				setStatus( status, e.message, 'error' );
 				gen.disabled = false;
@@ -119,6 +121,12 @@
 		} );
 	} );
 
+	$$( '[data-aivt-confirm-link]' ).forEach( function ( link ) {
+		link.addEventListener( 'click', function ( e ) {
+			if ( ! window.confirm( link.getAttribute( 'data-aivt-confirm-link' ) ) ) { e.preventDefault(); }
+		} );
+	} );
+
 	$$( 'form[data-aivt-confirm="delete"]' ).forEach( function ( form ) {
 		form.addEventListener( 'submit', function ( e ) {
 			if ( ! window.confirm( t.confirmDel ) ) { e.preventDefault(); }
@@ -134,6 +142,7 @@
 			status: $( '[data-aivt-run-status]' ),
 			progress: $( '[data-aivt-progress]' ),
 			fill: $( '[data-aivt-progress-fill]' ),
+			bar: $( '[data-aivt-progress-bar]' ),
 			runBtns: $$( '[data-aivt-run]' ),
 			cancel: $( '[data-aivt-cancel]' )
 		};
@@ -143,14 +152,24 @@
 		var ui = runUI();
 		if ( ui.progress ) { ui.progress.hidden = false; }
 		if ( ui.fill ) { ui.fill.style.width = run.percent + '%'; }
+		if ( ui.bar ) { ui.bar.setAttribute( 'aria-valuenow', run.percent ); }
 		if ( ui.cancel ) { ui.cancel.hidden = false; }
 		ui.runBtns.forEach( function ( b ) { b.hidden = true; } );
 		setStatus( ui.status, sprintf( t.progress, run.done + run.failed, run.total ) );
 	}
 
+	var failures = 0;
+
+	// Worth trying again: no response at all (network, proxy timeouts such as
+	// Cloudflare's 524) or a server error. The item itself is retried server-side.
+	function isTemporary( e ) {
+		return ! e.status || e.status >= 500 || 408 === e.status || 429 === e.status;
+	}
+
 	function loop() {
 		if ( ! runId || stopping ) { return; }
 		api( 'POST', '/runs/' + runId + '/step' ).then( function ( run ) {
+			failures = 0;
 			showProgress( run );
 			if ( 'running' === run.status ) {
 				loop();
@@ -159,22 +178,37 @@
 				window.setTimeout( function () { window.location.reload(); }, 800 );
 			}
 		} ).catch( function ( e ) {
-			// A step can time out on slow hosts; the item is retried, so keep going.
+			failures++;
+			if ( 401 === e.status || 403 === e.status ) {
+				// Logged out or the page is too old: retrying cannot help.
+				setStatus( runUI().status, t.sessionExpired, 'error' );
+				return;
+			}
+			if ( ! isTemporary( e ) || failures >= 10 ) {
+				setStatus( runUI().status, e.message + ' ' + t.continuesInBackground, 'error' );
+				return;
+			}
 			setStatus( runUI().status, e.message, 'error' );
-			window.setTimeout( loop, 5000 );
+			window.setTimeout( loop, Math.min( 60000, 5000 * failures ) );
 		} );
 	}
 
 	$$( '[data-aivt-run]' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
 			btn.disabled = true;
-			setStatus( runUI().status, t.starting );
-			api( 'POST', '/runs' ).then( function ( run ) {
+			// Say what it will cost before spending anything.
+			api( 'GET', '/runs/estimate' ).then( function ( estimate ) {
+				if ( ! window.confirm( t.confirmRun.replace( '%s', estimate.formatted ) ) ) {
+					throw null;
+				}
+				setStatus( runUI().status, t.starting );
+				return api( 'POST', '/runs' );
+			} ).then( function ( run ) {
 				runId = run.id;
 				showProgress( run );
 				loop();
 			} ).catch( function ( e ) {
-				setStatus( runUI().status, e.message, 'error' );
+				if ( e ) { setStatus( runUI().status, e.message, 'error' ); }
 				btn.disabled = false;
 			} );
 		} );
@@ -185,8 +219,14 @@
 		cancel.addEventListener( 'click', function () {
 			if ( ! runId || ! window.confirm( t.confirmStop ) ) { return; }
 			stopping = true;
+			cancel.disabled = true;
 			api( 'POST', '/runs/' + runId + '/cancel' ).then( function () {
 				window.location.reload();
+			} ).catch( function ( e ) {
+				stopping = false;
+				cancel.disabled = false;
+				setStatus( runUI().status, e.message, 'error' );
+				loop();
 			} );
 		} );
 	}

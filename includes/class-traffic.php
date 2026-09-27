@@ -108,6 +108,16 @@ class Traffic {
 	}
 
 	/**
+	 * Most AI-referral hits counted per visitor per day.
+	 */
+	const HITS_PER_DAY = 20;
+
+	/**
+	 * Path under which visits to archives, search and other non-post pages are counted.
+	 */
+	const OTHER_PATH = '/(other)';
+
+	/**
 	 * Register hooks.
 	 */
 	public function register() {
@@ -120,7 +130,7 @@ class Traffic {
 			return;
 		}
 		add_action( 'template_redirect', array( $this, 'log_bot' ) );
-		add_action( 'wp_footer', array( $this, 'beacon' ), 99 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'beacon' ) );
 	}
 
 	/**
@@ -166,9 +176,47 @@ class Traffic {
 		if ( ! $source ) {
 			return array( 'ok' => false );
 		}
-		$path = self::clean_path( (string) $req['path'] );
-		( new Repository() )->log_traffic( 'referral', $source, $path, self::path_post_id( $path ) );
+		// Anyone can call this endpoint, so it must not be usable to fill the
+		// database or inflate the numbers: a few hits per visitor per day, and
+		// only for real pages.
+		if ( self::over_limit() ) {
+			return array( 'ok' => false );
+		}
+		$path    = self::clean_path( (string) $req['path'] );
+		$post_id = self::path_post_id( $path );
+		if ( ! $post_id && ! self::is_home_path( $path ) ) {
+			$path = self::OTHER_PATH;
+		}
+		( new Repository() )->log_traffic( 'referral', $source, $path, $post_id );
 		return array( 'ok' => true );
+	}
+
+	/**
+	 * Whether this visitor has already reported HITS_PER_DAY visits today.
+	 * Only a hash of the IP address is kept, and only until the next day.
+	 *
+	 * @return bool
+	 */
+	private static function over_limit() {
+		$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$key = 'aivt_hits_' . substr( wp_hash( $ip . gmdate( 'Y-m-d' ) ), 0, 20 );
+		$n   = (int) get_transient( $key );
+		if ( $n >= self::HITS_PER_DAY ) {
+			return true;
+		}
+		set_transient( $key, $n + 1, DAY_IN_SECONDS );
+		return false;
+	}
+
+	/**
+	 * Whether a path is the site's front page.
+	 *
+	 * @param string $path Path.
+	 * @return bool
+	 */
+	private static function is_home_path( $path ) {
+		$home = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		return untrailingslashit( $path ) === untrailingslashit( $home );
 	}
 
 	/**
@@ -182,8 +230,15 @@ class Traffic {
 		if ( ! $bot ) {
 			return;
 		}
+		// Not-found pages would let anyone add a row per made-up URL.
+		if ( is_404() ) {
+			return;
+		}
 		$path = self::clean_path( isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/' );
 		$post = is_singular() ? get_queried_object_id() : 0;
+		if ( ! $post && ! is_front_page() && ! is_home() ) {
+			$path = self::OTHER_PATH;
+		}
 		( new Repository() )->log_traffic( 'bot', $bot, $path, $post );
 	}
 
@@ -205,7 +260,9 @@ class Traffic {
 			str_replace( '/', '\/', $pattern ),
 			wp_json_encode( esc_url_raw( rest_url( Rest::NS . '/hit' ) ) )
 		);
-		wp_print_inline_script_tag( $script, array( 'id' => 'aivt-referral' ) );
+		wp_register_script( 'aivt-referral', false, array(), AIVT_VERSION, true );
+		wp_enqueue_script( 'aivt-referral' );
+		wp_add_inline_script( 'aivt-referral', $script );
 	}
 
 	/**

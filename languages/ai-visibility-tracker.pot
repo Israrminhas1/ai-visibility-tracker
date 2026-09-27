@@ -1,0 +1,1859 @@
+# Copyright (C) 2026 Israr Minhas
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: AI Visibility Tracker 0.3.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/seowp\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-27T19:13:07+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: ai-visibility-tracker\n"
+
+#. Plugin Name of the plugin
+#: ai-visibility-tracker.php
+#: includes/admin/class-admin.php:179
+msgid "AI Visibility Tracker"
+msgstr ""
+
+#. Description of the plugin
+#: ai-visibility-tracker.php
+msgid "See if ChatGPT, Claude, Gemini, Perplexity and Grok mention your brand. Generate prompts from your site, see the sources AI cites, and discover competitors. Bring your own API keys."
+msgstr ""
+
+#. Author of the plugin
+#: ai-visibility-tracker.php
+msgid "Israr Minhas"
+msgstr ""
+
+#: includes/admin/class-admin.php:35
+msgid "Dashboard"
+msgstr ""
+
+#: includes/admin/class-admin.php:36
+#: includes/admin/views/dashboard.php:236
+msgid "Prompts"
+msgstr ""
+
+#: includes/admin/class-admin.php:37
+msgid "Results"
+msgstr ""
+
+#: includes/admin/class-admin.php:38
+msgid "Opportunities"
+msgstr ""
+
+#: includes/admin/class-admin.php:39
+#: includes/admin/views/dashboard.php:62
+msgid "AI Traffic"
+msgstr ""
+
+#: includes/admin/class-admin.php:40
+#: includes/admin/views/dashboard.php:61
+msgid "AI Readiness"
+msgstr ""
+
+#: includes/admin/class-admin.php:41
+#: includes/admin/class-admin.php:83
+#: includes/admin/views/prompts.php:85
+msgid "Settings"
+msgstr ""
+
+#: includes/admin/class-admin.php:63
+#: includes/admin/class-admin.php:64
+msgid "AI Visibility"
+msgstr ""
+
+#: includes/admin/class-admin.php:109
+msgid "Testing…"
+msgstr ""
+
+#: includes/admin/class-admin.php:110
+msgid "Generating prompts… this can take up to a minute."
+msgstr ""
+
+#: includes/admin/class-admin.php:111
+msgid "Starting…"
+msgstr ""
+
+#. translators: 1: answers checked so far, 2: answers in the run
+#: includes/admin/class-admin.php:113
+#, php-format
+msgid "%1$d of %2$d answers checked"
+msgstr ""
+
+#: includes/admin/class-admin.php:114
+msgid "Run complete. Refreshing…"
+msgstr ""
+
+#: includes/admin/class-admin.php:115
+msgid "Something went wrong."
+msgstr ""
+
+#. translators: %s: estimated cost, e.g. $0.42
+#: includes/admin/class-admin.php:117
+#, php-format
+msgid "Run a check now? It will cost about %s on your AI accounts."
+msgstr ""
+
+#: includes/admin/class-admin.php:118
+msgid "Your login has expired. Reload the page to continue; the check carries on in the background."
+msgstr ""
+
+#: includes/admin/class-admin.php:119
+msgid "The check carries on in the background."
+msgstr ""
+
+#. translators: %d: number of prompts
+#: includes/admin/class-admin.php:121
+#, php-format
+msgid "New prompts added: %d. Refreshing…"
+msgstr ""
+
+#: includes/admin/class-admin.php:122
+msgid "Stop this run? Answers already checked are kept."
+msgstr ""
+
+#: includes/admin/class-admin.php:123
+msgid "Delete this prompt?"
+msgstr ""
+
+#: includes/admin/class-admin.php:124
+msgid "Loading…"
+msgstr ""
+
+#. translators: %d: position
+#: includes/admin/class-admin.php:125
+#: includes/admin/views/prompts.php:208
+#: includes/admin/views/results.php:92
+#: includes/admin/views/results.php:142
+msgid "Mentioned"
+msgstr ""
+
+#. translators: %d: position
+#: includes/admin/class-admin.php:126
+#: includes/admin/views/prompts.php:209
+#: includes/admin/views/results.php:93
+#: includes/admin/views/results.php:144
+msgid "Not mentioned"
+msgstr ""
+
+#. translators: %d: rank among the brands in the answer
+#: includes/admin/class-admin.php:128
+#, php-format
+msgid "Position #%d"
+msgstr ""
+
+#: includes/admin/class-admin.php:129
+msgid "Your site is cited"
+msgstr ""
+
+#: includes/admin/class-admin.php:130
+msgid "Sources cited"
+msgstr ""
+
+#: includes/admin/class-admin.php:131
+msgid "This answer cited no sources."
+msgstr ""
+
+#: includes/admin/class-admin.php:132
+msgid "Brands in this answer"
+msgstr ""
+
+#: includes/admin/class-admin.php:133
+msgid "No brands detected."
+msgstr ""
+
+#: includes/admin/class-admin.php:134
+#: includes/admin/class-admin.php:615
+msgid "You"
+msgstr ""
+
+#: includes/admin/class-admin.php:135
+#: includes/admin/class-admin.php:616
+msgid "Competitor"
+msgstr ""
+
+#: includes/admin/class-admin.php:136
+#: includes/admin/class-admin.php:618
+msgid "Source"
+msgstr ""
+
+#: includes/admin/class-admin.php:137
+#: includes/admin/class-admin.php:617
+msgid "Social"
+msgstr ""
+
+#: includes/admin/class-admin.php:138
+msgid "Edit page"
+msgstr ""
+
+#: includes/admin/class-admin.php:139
+msgid "Asking AI for other names…"
+msgstr ""
+
+#: includes/admin/class-admin.php:140
+msgid "No new names suggested."
+msgstr ""
+
+#. translators: %s: comma-separated names
+#: includes/admin/class-admin.php:142
+#, php-format
+msgid "Added: %s. Review them, then save."
+msgstr ""
+
+#: includes/admin/class-admin.php:180
+msgid "AI Visibility sections"
+msgstr ""
+
+#: includes/admin/class-admin.php:204
+msgid "You do not have permission to do this."
+msgstr ""
+
+#: includes/admin/class-admin.php:248
+msgid "Nothing to export."
+msgstr ""
+
+#: includes/admin/class-admin.php:285
+msgid "Check deleted."
+msgstr ""
+
+#: includes/admin/class-admin.php:331
+msgid "Settings saved."
+msgstr ""
+
+#: includes/admin/class-admin.php:342
+msgid "AI engines saved."
+msgstr ""
+
+#. translators: %d: number of prompts
+#: includes/admin/class-admin.php:381
+#, php-format
+msgid "%d prompt added."
+msgid_plural "%d prompts added."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/class-admin.php:410
+msgid "Prompt updated."
+msgstr ""
+
+#: includes/admin/class-admin.php:442
+msgid "Competitor added."
+msgstr ""
+
+#: includes/admin/class-admin.php:442
+msgid "Competitor removed."
+msgstr ""
+
+#: includes/admin/class-admin.php:457
+msgid "Please enter a page on this website."
+msgstr ""
+
+#: includes/admin/class-admin.php:461
+msgid "Checks refreshed."
+msgstr ""
+
+#: includes/admin/class-admin.php:643
+msgid "(no title)"
+msgstr ""
+
+#: includes/admin/class-admin.php:646
+#: includes/admin/views/prompts.php:218
+msgid "Edit"
+msgstr ""
+
+#: includes/admin/class-admin.php:650
+msgid "Homepage"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:27
+msgid "Find out if AI recommends your business"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:28
+msgid "We ask ChatGPT, Claude, Gemini, Perplexity and Grok the questions your customers ask, then show whether they mention you, which sources they cite, and which competitors they recommend instead."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:31
+msgid "Connect at least one AI engine"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:32
+msgid "Add your own API key. You pay the AI provider directly, usually a few cents per run."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:33
+msgid "Open settings"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:36
+msgid "Check your brand name and website"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:37
+msgid "Add any other names customers use for you."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:38
+msgid "Edit brand"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:41
+msgid "Create your prompts"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:42
+msgid "Generate 10 from your site content, or write your own."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:43
+msgid "Manage prompts"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:46
+msgid "Run your first check"
+msgstr ""
+
+#. translators: 1: number of prompts, 2: number of engines
+#: includes/admin/views/dashboard.php:50
+#, php-format
+msgid "%1$d prompts × %2$d engines."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:53
+#: includes/admin/views/partials/run-bar.php:51
+msgid "Run now"
+msgstr ""
+
+#. translators: 1: link to AI Readiness, 2: link to AI Traffic
+#: includes/admin/views/dashboard.php:60
+#, php-format
+msgid "No API key needed for these: check your %1$s and see your %2$s."
+msgstr ""
+
+#. translators: %s: date
+#: includes/admin/views/dashboard.php:115
+#, php-format
+msgid "Latest completed check: %s"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:117
+msgid "See every answer"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:120
+#: includes/admin/views/traffic.php:71
+msgid "Summary"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:122
+msgid "AI visibility score"
+msgstr ""
+
+#. translators: 1: answers linking to the site, 2: answers mentioning the brand, 3: total answers
+#: includes/admin/views/dashboard.php:127
+#, php-format
+msgid "Linked in %1$d and mentioned in %2$d of %3$d answers"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:129
+msgid "Each answer that links to your website scores 100, an answer that only mentions your brand scores 50, and an answer without you scores 0. The score is the average."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:133
+msgid "Mention rate"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:135
+msgid "Answers that name your brand"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:138
+msgid "Average position"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:140
+msgid "Your rank among brands named, when mentioned"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:144
+msgid "AI visitors"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:146
+msgid "Sent by AI assistants, last 30 days"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:150
+msgid "Prompts tracked"
+msgstr ""
+
+#. translators: %d: number of engines
+#: includes/admin/views/dashboard.php:155
+#, php-format
+msgid "Across %d AI engine"
+msgid_plural "Across %d AI engines"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of answers
+#: includes/admin/views/dashboard.php:167
+#, php-format
+msgid "This score is based on only %d answers. AI answers vary, so add more prompts or engines for a reliable picture."
+msgstr ""
+
+#. translators: %d: number of prompts
+#: includes/admin/views/dashboard.php:179
+#, php-format
+msgid "AI left you out of %d prompt."
+msgid_plural "AI left you out of %d prompts."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/dashboard.php:182
+msgid "See who it recommended instead and where to get featured."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:190
+msgid "Visibility by AI engine"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:191
+msgid "Visibility score per engine (links count double)."
+msgstr ""
+
+#. translators: 1: mentions, 2: answers
+#: includes/admin/views/dashboard.php:209
+#, php-format
+msgid "%1$d/%2$d named"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:224
+msgid "Visibility by topic"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:225
+msgid "Where AI already knows you, and where it doesn't."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:228
+msgid "Your prompts have no topics yet."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:229
+msgid "Add topics to your prompts"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:235
+#: includes/admin/views/prompts.php:99
+#: includes/admin/views/prompts.php:175
+#: includes/admin/views/results.php:78
+msgid "Topic"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:237
+msgid "Visibility score"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:245
+#: includes/admin/views/prompts.php:130
+#: includes/admin/views/prompts.php:163
+#: includes/admin/views/results.php:84
+msgid "No topic"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:261
+msgid "Your pages AI cites"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:262
+msgid "Pages on your site that AI answers link to. Keep these up to date: they are your strongest AI assets."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:264
+msgid "No answer linked to your website yet."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:269
+#: includes/admin/views/traffic.php:203
+#: includes/admin/views/traffic.php:254
+msgid "Page"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:270
+msgid "Engines"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:271
+#: includes/admin/views/dashboard.php:363
+msgid "Cited in"
+msgstr ""
+
+#. translators: %d: number of answers
+#: includes/admin/views/dashboard.php:287
+#: includes/admin/views/dashboard.php:374
+#: includes/admin/views/opportunities.php:115
+#, php-format
+msgid "%d answer"
+msgid_plural "%d answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/dashboard.php:300
+msgid "Who AI recommends instead"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:301
+msgid "Other brands named in the answers. Track the ones that are real competitors."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:303
+msgid "No other brands were mentioned."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:308
+#: includes/admin/views/results.php:89
+msgid "Brand"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:309
+msgid "Share of answers"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:310
+msgid "Avg. position"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:311
+#: includes/admin/views/prompts.php:155
+#: includes/admin/views/results.php:123
+msgid "Actions"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:341
+#: includes/admin/views/settings.php:63
+msgid "Track"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:353
+msgid "Sources AI cites"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:354
+msgid "Websites the answers link to. Getting featured on popular sources is one of the best ways to be recommended."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:356
+msgid "No sources were cited."
+msgstr ""
+
+#: includes/admin/views/dashboard.php:361
+#: includes/admin/views/opportunities.php:82
+msgid "Website"
+msgstr ""
+
+#: includes/admin/views/dashboard.php:362
+msgid "Type"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:21
+msgid "Run your first check from the Dashboard to see opportunities."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:54
+msgid "Competitor page. Study what it covers that your site doesn't."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:56
+msgid "Join the conversation here: answer questions and share helpful posts."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:58
+msgid "Get listed, reviewed or featured on this site."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:66
+msgid "AI mentioned you in every answer."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:67
+msgid "Add more prompts to find new areas where AI doesn't know you yet."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:68
+#: includes/admin/views/prompts.php:101
+msgid "Add prompts"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:77
+msgid "Where to get featured"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:78
+msgid "The sources AI relied on when it left you out. Appearing on these is the fastest way into AI answers."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:83
+msgid "What to do"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:84
+msgid "Answers"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:96
+msgid "These answers cited no sources."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:103
+msgid "Who wins when you're missing"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:104
+msgid "Brands AI recommended in the answers that left you out."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:106
+msgid "No other brands were named either. AI may not know any business for these questions yet, which is a real opening for you."
+msgstr ""
+
+#. translators: %d: number of prompts
+#: includes/admin/views/opportunities.php:129
+#, php-format
+msgid "%d prompt where AI left you out"
+msgid_plural "%d prompts where AI left you out"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/opportunities.php:132
+msgid "Most urgent first: missing on every engine while competitors are named."
+msgstr ""
+
+#: includes/admin/views/opportunities.php:140
+msgid "High priority"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:141
+msgid "Medium priority"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:142
+msgid "Low priority"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:156
+msgid "Missing on"
+msgstr ""
+
+#. translators: 1: engines missing, 2: engines answered
+#: includes/admin/views/opportunities.php:160
+#, php-format
+msgid "%1$d of %2$d engines"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:170
+msgid "Recommended instead"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:171
+msgid "No brands named"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:174
+msgid "Sources used"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:175
+msgid "None cited"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:181
+msgid "Write a page that answers this"
+msgstr ""
+
+#: includes/admin/views/opportunities.php:183
+msgid "Read the answers"
+msgstr ""
+
+#: includes/admin/views/partials/modal.php:16
+msgid "Close"
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:24
+msgid "Visibility check"
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:28
+msgid "A check is running…"
+msgstr ""
+
+#. translators: 1: prompts, 2: engines, 3: total answers, 4: estimated cost
+#: includes/admin/views/partials/run-bar.php:32
+#, php-format
+msgid "%1$d prompts × %2$d engines = %3$d answers per check, about %4$s."
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:39
+msgid "Connect an AI engine in Settings to start."
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:41
+msgid "Add some prompts to start."
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:47
+msgid "Check progress"
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:50
+msgid "Stop"
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:54
+msgid "Keep this page open for the fastest results. If you leave, the check continues in the background."
+msgstr ""
+
+#. translators: 1: cost of the last check, 2: amount spent this month
+#: includes/admin/views/partials/run-bar.php:60
+#, php-format
+msgid "Last check cost %1$s. This month: %2$s."
+msgstr ""
+
+#. translators: %d: failed answers
+#: includes/admin/views/partials/run-bar.php:70
+#, php-format
+msgid "The last check had %d failed answers."
+msgstr ""
+
+#: includes/admin/views/partials/run-bar.php:72
+msgid "See why"
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:60
+msgid "Visibility over time"
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:64
+msgid "The trend fills in after your second check. Turn on weekly checks in Settings to track progress automatically."
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:66
+msgid "Visibility score per engine, check by check."
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:84
+msgid "Line chart of the visibility score per AI engine over time. A table version follows."
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:145
+#: includes/admin/views/traffic.php:164
+msgid "View as table"
+msgstr ""
+
+#: includes/admin/views/partials/trend-chart.php:149
+#: includes/admin/views/results.php:53
+msgid "Check"
+msgstr ""
+
+#: includes/admin/views/prompts.php:57
+msgid "Best of"
+msgstr ""
+
+#: includes/admin/views/prompts.php:58
+msgid "Comparison"
+msgstr ""
+
+#: includes/admin/views/prompts.php:59
+msgid "Alternatives"
+msgstr ""
+
+#: includes/admin/views/prompts.php:60
+msgid "How to"
+msgstr ""
+
+#: includes/admin/views/prompts.php:61
+#: includes/admin/views/readiness.php:23
+msgid "Problem"
+msgstr ""
+
+#: includes/admin/views/prompts.php:62
+msgid "Local"
+msgstr ""
+
+#: includes/admin/views/prompts.php:63
+msgid "Pricing"
+msgstr ""
+
+#: includes/admin/views/prompts.php:72
+msgid "Generate prompts from your website"
+msgstr ""
+
+#: includes/admin/views/prompts.php:73
+msgid "We read your pages, products and posts, then write the kind of questions real customers ask AI. Your brand name is never included, so results are honest."
+msgstr ""
+
+#: includes/admin/views/prompts.php:75
+msgid "How many"
+msgstr ""
+
+#: includes/admin/views/prompts.php:77
+msgid "Generate prompts"
+msgstr ""
+
+#. translators: %s: link to settings
+#: includes/admin/views/prompts.php:84
+#, php-format
+msgid "Connect an AI engine in %s first."
+msgstr ""
+
+#: includes/admin/views/prompts.php:93
+msgid "Add your own"
+msgstr ""
+
+#: includes/admin/views/prompts.php:96
+msgid "Prompts, one per line"
+msgstr ""
+
+#: includes/admin/views/prompts.php:97
+msgid "One question per line, e.g. What is the best bakery in Austin for wedding cakes?"
+msgstr ""
+
+#: includes/admin/views/prompts.php:100
+msgid "e.g. Wedding cakes (optional)"
+msgstr ""
+
+#. translators: %d: number of prompts
+#: includes/admin/views/prompts.php:118
+#, php-format
+msgid "Your prompts (%d)"
+msgstr ""
+
+#: includes/admin/views/prompts.php:124
+msgid "Filter by topic"
+msgstr ""
+
+#: includes/admin/views/prompts.php:126
+#: includes/admin/views/results.php:80
+msgid "All topics"
+msgstr ""
+
+#: includes/admin/views/prompts.php:132
+#: includes/admin/views/results.php:99
+msgid "Filter"
+msgstr ""
+
+#: includes/admin/views/prompts.php:136
+#: includes/admin/views/results.php:110
+#: includes/admin/views/traffic.php:114
+msgid "Export CSV"
+msgstr ""
+
+#: includes/admin/views/prompts.php:140
+msgid "Dots show the latest check: filled = your brand was mentioned. Click one to read the answer."
+msgstr ""
+
+#: includes/admin/views/prompts.php:144
+msgid "No prompts yet. Generate some from your website or add your own above."
+msgstr ""
+
+#: includes/admin/views/prompts.php:149
+#: includes/admin/views/results.php:118
+msgid "Prompt"
+msgstr ""
+
+#: includes/admin/views/prompts.php:172
+msgid "Prompt text"
+msgstr ""
+
+#: includes/admin/views/prompts.php:177
+msgid "Save"
+msgstr ""
+
+#: includes/admin/views/prompts.php:187
+msgid "Generated"
+msgstr ""
+
+#: includes/admin/views/prompts.php:187
+msgid "Added by you"
+msgstr ""
+
+#: includes/admin/views/prompts.php:189
+msgid "Paused"
+msgstr ""
+
+#: includes/admin/views/prompts.php:204
+#: includes/admin/views/results.php:151
+msgid "Failed"
+msgstr ""
+
+#. translators: %d: position
+#: includes/admin/views/prompts.php:208
+#, php-format
+msgid "Mentioned, position #%d"
+msgstr ""
+
+#: includes/admin/views/prompts.php:223
+msgid "Pause"
+msgstr ""
+
+#: includes/admin/views/prompts.php:223
+msgid "Resume"
+msgstr ""
+
+#: includes/admin/views/prompts.php:229
+msgid "Delete"
+msgstr ""
+
+#: includes/admin/views/readiness.php:21
+msgid "Passed"
+msgstr ""
+
+#: includes/admin/views/readiness.php:22
+msgid "Improve"
+msgstr ""
+
+#: includes/admin/views/readiness.php:24
+msgid "Info"
+msgstr ""
+
+#: includes/admin/views/readiness.php:33
+msgid "Shows you in AI answers"
+msgstr ""
+
+#: includes/admin/views/readiness.php:34
+msgid "Reads pages a user asks about"
+msgstr ""
+
+#: includes/admin/views/readiness.php:35
+msgid "Trains future AI models"
+msgstr ""
+
+#: includes/admin/views/readiness.php:46
+msgid "How to fix:"
+msgstr ""
+
+#: includes/admin/views/readiness.php:48
+msgid "Open"
+msgstr ""
+
+#. translators: 1: passed, 2: total
+#: includes/admin/views/readiness.php:61
+#, php-format
+msgid "%1$d of %2$d checks passed"
+msgstr ""
+
+#: includes/admin/views/readiness.php:65
+msgid "Can AI find, read and understand your site?"
+msgstr ""
+
+#. translators: 1: passed checks, 2: total checks, 3: time ago
+#: includes/admin/views/readiness.php:69
+#, php-format
+msgid "%1$d of %2$d checks passed. Checked %3$s ago."
+msgstr ""
+
+#: includes/admin/views/readiness.php:74
+msgid "Page to check"
+msgstr ""
+
+#: includes/admin/views/readiness.php:76
+msgid "Check again"
+msgstr ""
+
+#: includes/admin/views/readiness.php:78
+msgid "Enter any page on your site to check it, e.g. a product or service page."
+msgstr ""
+
+#: includes/admin/views/readiness.php:84
+msgid "Site"
+msgstr ""
+
+#. translators: %s: page URL
+#: includes/admin/views/readiness.php:92
+#, php-format
+msgid "Page: %s"
+msgstr ""
+
+#: includes/admin/views/readiness.php:104
+msgid "AI crawlers and your robots.txt"
+msgstr ""
+
+#: includes/admin/views/readiness.php:106
+msgid "Blocking search crawlers keeps you out of AI answers. Blocking training crawlers is your choice: it doesn't stop AI from finding and citing you."
+msgstr ""
+
+#: includes/admin/views/readiness.php:109
+msgid "Read from the robots.txt file in your site root."
+msgstr ""
+
+#: includes/admin/views/readiness.php:110
+msgid "Read from your live robots.txt."
+msgstr ""
+
+#: includes/admin/views/readiness.php:111
+msgid "Built the way WordPress generates it (your site could not load its own robots.txt)."
+msgstr ""
+
+#: includes/admin/views/readiness.php:119
+#: includes/admin/views/traffic.php:227
+msgid "Crawler"
+msgstr ""
+
+#: includes/admin/views/readiness.php:120
+msgid "Used for"
+msgstr ""
+
+#: includes/admin/views/readiness.php:121
+msgid "Access"
+msgstr ""
+
+#: includes/admin/views/readiness.php:122
+msgid "Rule that decides it"
+msgstr ""
+
+#: includes/admin/views/readiness.php:133
+msgid "Allowed"
+msgstr ""
+
+#: includes/admin/views/readiness.php:135
+msgid "Blocked"
+msgstr ""
+
+#: includes/admin/views/readiness.php:138
+msgid "No rule, allowed by default"
+msgstr ""
+
+#: includes/admin/views/readiness.php:144
+msgid "Show robots.txt"
+msgstr ""
+
+#: includes/admin/views/results.php:29
+msgid "No checks yet. Run your first check from the Dashboard."
+msgstr ""
+
+#: includes/admin/views/results.php:60
+msgid "running"
+msgstr ""
+
+#: includes/admin/views/results.php:68
+#: includes/admin/views/results.php:119
+msgid "Engine"
+msgstr ""
+
+#: includes/admin/views/results.php:70
+msgid "All engines"
+msgstr ""
+
+#: includes/admin/views/results.php:91
+msgid "All answers"
+msgstr ""
+
+#: includes/admin/views/results.php:101
+msgid "Show all prompts"
+msgstr ""
+
+#. translators: %s: cost of the check
+#: includes/admin/views/results.php:107
+#, php-format
+msgid "Cost: %s"
+msgstr ""
+
+#: includes/admin/views/results.php:111
+msgid "Delete this check and all its answers? This cannot be undone."
+msgstr ""
+
+#: includes/admin/views/results.php:111
+msgid "Delete check"
+msgstr ""
+
+#: includes/admin/views/results.php:120
+#: includes/admin/views/settings.php:113
+msgid "Your brand"
+msgstr ""
+
+#: includes/admin/views/results.php:121
+msgid "Position"
+msgstr ""
+
+#: includes/admin/views/results.php:122
+msgid "Site cited"
+msgstr ""
+
+#: includes/admin/views/results.php:128
+msgid "No answers match these filters."
+msgstr ""
+
+#: includes/admin/views/results.php:148
+msgid "Yes"
+msgstr ""
+
+#: includes/admin/views/results.php:148
+msgid "No"
+msgstr ""
+
+#: includes/admin/views/results.php:149
+msgid "View answer"
+msgstr ""
+
+#: includes/admin/views/results.php:153
+msgid "Waiting…"
+msgstr ""
+
+#: includes/admin/views/settings.php:17
+msgid "Worldwide (no location)"
+msgstr ""
+
+#: includes/admin/views/settings.php:45
+msgid "AI engines"
+msgstr ""
+
+#: includes/admin/views/settings.php:46
+msgid "Turn on the engines you want to track and add your own API key for each. Keys are stored encrypted and only sent to that provider. You pay the provider directly for usage."
+msgstr ""
+
+#: includes/admin/views/settings.php:68
+msgid "The saved key can no longer be read, usually because the site moved or its security keys changed. Paste it again."
+msgstr ""
+
+#: includes/admin/views/settings.php:72
+msgid "API key"
+msgstr ""
+
+#: includes/admin/views/settings.php:74
+msgid "Paste your API key"
+msgstr ""
+
+#: includes/admin/views/settings.php:78
+msgid "Model"
+msgstr ""
+
+#: includes/admin/views/settings.php:86
+msgid "A Perplexity search preset (fast, low, medium, high) or a model ID."
+msgstr ""
+
+#: includes/admin/views/settings.php:91
+msgid "Test connection"
+msgstr ""
+
+#. translators: %s: vendor name
+#: includes/admin/views/settings.php:96
+#, php-format
+msgid "Get your %s API key"
+msgstr ""
+
+#: includes/admin/views/settings.php:98
+msgid "(opens in a new tab)"
+msgstr ""
+
+#: includes/admin/views/settings.php:103
+msgid "Remove saved key"
+msgstr ""
+
+#: includes/admin/views/settings.php:116
+msgid "Brand name"
+msgstr ""
+
+#: includes/admin/views/settings.php:120
+msgid "Other names"
+msgstr ""
+
+#: includes/admin/views/settings.php:124
+msgid "Suggest names with AI"
+msgstr ""
+
+#: includes/admin/views/settings.php:127
+msgid "Comma separated. Short names, product names or old names AI might use, e.g. \"Acme, Acme Bakery\"."
+msgstr ""
+
+#: includes/admin/views/settings.php:131
+msgid "Your websites"
+msgstr ""
+
+#: includes/admin/views/settings.php:134
+msgid "Comma separated domains. A citation of any of these counts as your site being cited."
+msgstr ""
+
+#: includes/admin/views/settings.php:138
+msgid "What you do"
+msgstr ""
+
+#: includes/admin/views/settings.php:141
+msgid "One or two sentences about your products or services and who they are for. Used to write better prompts."
+msgstr ""
+
+#: includes/admin/views/settings.php:145
+msgid "Service area"
+msgstr ""
+
+#: includes/admin/views/settings.php:147
+msgid "e.g. Austin, Texas — leave empty if online/national"
+msgstr ""
+
+#: includes/admin/views/settings.php:151
+msgid "Search from country"
+msgstr ""
+
+#: includes/admin/views/settings.php:158
+msgid "Engines that support it search as if the user were in this country."
+msgstr ""
+
+#: includes/admin/views/settings.php:162
+msgid "Prompt language"
+msgstr ""
+
+#: includes/admin/views/settings.php:166
+#: includes/admin/views/settings.php:169
+msgid "Automatic checks"
+msgstr ""
+
+#: includes/admin/views/settings.php:172
+msgid "Off — I run checks myself"
+msgstr ""
+
+#: includes/admin/views/settings.php:173
+msgid "Weekly"
+msgstr ""
+
+#: includes/admin/views/settings.php:174
+msgid "Monthly"
+msgstr ""
+
+#: includes/admin/views/settings.php:180
+msgid "Scheduled checks use WP-Cron, which runs when your site gets visits. Each check costs the same as a manual one."
+msgstr ""
+
+#: includes/admin/views/settings.php:185
+msgid "Monthly budget (USD)"
+msgstr ""
+
+#: includes/admin/views/settings.php:187
+msgid "none"
+msgstr ""
+
+#. translators: 1: estimated cost of one check, 2: amount spent this month
+#: includes/admin/views/settings.php:193
+#, php-format
+msgid "A check that would go over it does not start. One check now costs about %1$s; %2$s spent this month."
+msgstr ""
+
+#: includes/admin/views/settings.php:202
+msgid "Keep checks"
+msgstr ""
+
+#: includes/admin/views/settings.php:205
+msgid "The most recent checks to keep. Older ones are deleted with their answers."
+msgstr ""
+
+#: includes/admin/views/settings.php:210
+msgid "AI traffic"
+msgstr ""
+
+#: includes/admin/views/settings.php:213
+msgid "Track AI traffic"
+msgstr ""
+
+#: includes/admin/views/settings.php:215
+msgid "Count visitors sent by AI assistants and visits from AI crawlers"
+msgstr ""
+
+#: includes/admin/views/settings.php:216
+msgid "Only daily totals per source and page are stored, with no cookies, IP addresses or personal data. A tiny script (under 1 KB) checks where visitors came from."
+msgstr ""
+
+#: includes/admin/views/settings.php:221
+msgid "llms.txt"
+msgstr ""
+
+#: includes/admin/views/settings.php:224
+msgid "Automatic llms.txt"
+msgstr ""
+
+#: includes/admin/views/settings.php:227
+msgid "Your site already has its own llms.txt file, so the automatic one is not used."
+msgstr ""
+
+#: includes/admin/views/settings.php:229
+msgid "Publish an llms.txt that summarizes your site for AI assistants"
+msgstr ""
+
+#: includes/admin/views/settings.php:231
+msgid "Built from your brand details and published pages, products and posts. Updates automatically when you publish."
+msgstr ""
+
+#: includes/admin/views/settings.php:233
+msgid "View llms.txt"
+msgstr ""
+
+#: includes/admin/views/settings.php:240
+msgid "Extra introduction"
+msgstr ""
+
+#: includes/admin/views/settings.php:243
+msgid "Optional. Key facts you want AI to know: what makes you different, opening hours, service area, awards."
+msgstr ""
+
+#: includes/admin/views/settings.php:249
+msgid "Save settings"
+msgstr ""
+
+#: includes/admin/views/settings.php:253
+msgid "Competitors"
+msgstr ""
+
+#: includes/admin/views/settings.php:254
+msgid "Brands you compete with. Their websites are labeled \"Competitor\" in cited sources. You can also track brands straight from the Dashboard."
+msgstr ""
+
+#: includes/admin/views/settings.php:268
+msgid "Remove"
+msgstr ""
+
+#: includes/admin/views/settings.php:279
+msgid "Competitor name"
+msgstr ""
+
+#: includes/admin/views/settings.php:280
+msgid "Name"
+msgstr ""
+
+#: includes/admin/views/settings.php:281
+msgid "Competitor website"
+msgstr ""
+
+#: includes/admin/views/settings.php:282
+msgid "website.com (optional)"
+msgstr ""
+
+#: includes/admin/views/settings.php:283
+msgid "Add competitor"
+msgstr ""
+
+#: includes/admin/views/settings.php:288
+msgid "Privacy"
+msgstr ""
+
+#: includes/admin/views/settings.php:289
+msgid "This plugin only contacts an AI provider when you test a key, generate prompts, or run a check (manually or on your schedule). It sends your prompts, and when generating prompts a summary of your public site content, to the providers you enable. No data is sent to the plugin author."
+msgstr ""
+
+#. translators: %s: author name
+#: includes/admin/views/settings.php:293
+#, php-format
+msgid "Built by %s."
+msgstr ""
+
+#: includes/admin/views/traffic.php:42
+msgid "Search / answers"
+msgstr ""
+
+#: includes/admin/views/traffic.php:43
+msgid "Fetched for a user"
+msgstr ""
+
+#: includes/admin/views/traffic.php:44
+msgid "Training"
+msgstr ""
+
+#: includes/admin/views/traffic.php:51
+msgid "AI traffic tracking is turned off, so no new visits are being counted."
+msgstr ""
+
+#: includes/admin/views/traffic.php:52
+msgid "Turn it on"
+msgstr ""
+
+#: includes/admin/views/traffic.php:58
+msgid "Counted on your own site. No cookies, IP addresses or personal data are stored."
+msgstr ""
+
+#: includes/admin/views/traffic.php:59
+msgid "Date range"
+msgstr ""
+
+#. translators: %d: number of days
+#: includes/admin/views/traffic.php:64
+#, php-format
+msgid "%d days"
+msgstr ""
+
+#: includes/admin/views/traffic.php:73
+msgid "Visitors from AI"
+msgstr ""
+
+#: includes/admin/views/traffic.php:77
+msgid "No data for the previous period yet"
+msgstr ""
+
+#. translators: %d: number of days
+#: includes/admin/views/traffic.php:82
+#, php-format
+msgid "vs previous %d days"
+msgstr ""
+
+#: includes/admin/views/traffic.php:88
+msgid "Top AI source"
+msgstr ""
+
+#. translators: %s: number of visits
+#: includes/admin/views/traffic.php:94
+#, php-format
+msgid "%s visits"
+msgstr ""
+
+#: includes/admin/views/traffic.php:100
+msgid "AI crawler visits"
+msgstr ""
+
+#. translators: %d: number of different crawlers
+#: includes/admin/views/traffic.php:105
+#, php-format
+msgid "From %d AI crawler"
+msgid_plural "From %d AI crawlers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/traffic.php:113
+msgid "Visitors from AI per day"
+msgstr ""
+
+#: includes/admin/views/traffic.php:117
+msgid "No visitors from AI assistants in this period yet. When ChatGPT, Perplexity, Gemini or others link to your site and people click, they will show up here."
+msgstr ""
+
+#: includes/admin/views/traffic.php:132
+msgid "Bar chart of daily visitors from AI assistants. A table version follows."
+msgstr ""
+
+#: includes/admin/views/traffic.php:158
+#: includes/admin/views/traffic.php:166
+#: includes/admin/views/traffic.php:203
+msgid "Visitors"
+msgstr ""
+
+#: includes/admin/views/traffic.php:166
+msgid "Day"
+msgstr ""
+
+#: includes/admin/views/traffic.php:179
+msgid "Visitors by AI assistant"
+msgstr ""
+
+#: includes/admin/views/traffic.php:181
+#: includes/admin/views/traffic.php:200
+#: includes/admin/views/traffic.php:251
+msgid "None yet."
+msgstr ""
+
+#: includes/admin/views/traffic.php:198
+msgid "Pages AI sends visitors to"
+msgstr ""
+
+#: includes/admin/views/traffic.php:219
+msgid "AI crawlers visiting your site"
+msgstr ""
+
+#: includes/admin/views/traffic.php:220
+msgid "Search crawlers decide whether you can appear in AI answers. If a page cache serves your pages, some crawler visits are not counted."
+msgstr ""
+
+#: includes/admin/views/traffic.php:222
+msgid "No AI crawler visits recorded in this period."
+msgstr ""
+
+#: includes/admin/views/traffic.php:228
+msgid "Purpose"
+msgstr ""
+
+#: includes/admin/views/traffic.php:229
+#: includes/admin/views/traffic.php:254
+msgid "Visits"
+msgstr ""
+
+#: includes/admin/views/traffic.php:230
+msgid "Last seen"
+msgstr ""
+
+#: includes/admin/views/traffic.php:249
+msgid "Pages AI crawlers read most"
+msgstr ""
+
+#: includes/class-llms-txt.php:118
+msgid "Pages"
+msgstr ""
+
+#: includes/class-llms-txt.php:124
+msgid "Products"
+msgstr ""
+
+#: includes/class-llms-txt.php:128
+msgid "Articles"
+msgstr ""
+
+#: includes/class-prompt-generator.php:28
+#: includes/class-prompt-generator.php:115
+msgid "Connect at least one AI engine in Settings first."
+msgstr ""
+
+#: includes/class-prompt-generator.php:88
+msgid "The AI did not return any prompts. Please try again."
+msgstr ""
+
+#: includes/class-readiness.php:128
+msgid "Search engines are allowed"
+msgstr ""
+
+#: includes/class-readiness.php:130
+msgid "Your site is not hidden from search engines."
+msgstr ""
+
+#: includes/class-readiness.php:130
+msgid "\"Discourage search engines from indexing this site\" is turned on, so AI search tools will mostly ignore your site."
+msgstr ""
+
+#: includes/class-readiness.php:131
+msgid "Go to Settings → Reading and untick \"Discourage search engines\"."
+msgstr ""
+
+#: includes/class-readiness.php:138
+msgid "Site uses HTTPS"
+msgstr ""
+
+#: includes/class-readiness.php:140
+msgid "Your site address uses a secure connection."
+msgstr ""
+
+#: includes/class-readiness.php:140
+msgid "Your site address starts with http://. AI tools and search engines prefer secure sites."
+msgstr ""
+
+#: includes/class-readiness.php:141
+msgid "Ask your host for a free SSL certificate, then update the addresses in Settings → General."
+msgstr ""
+
+#: includes/class-readiness.php:152
+msgid "AI search crawlers can access your site"
+msgstr ""
+
+#. translators: %s: list of crawler names
+#: includes/class-readiness.php:156
+#, php-format
+msgid "robots.txt blocks: %s. These crawlers decide whether you appear in AI answers."
+msgstr ""
+
+#: includes/class-readiness.php:157
+msgid "No AI search crawler is blocked by robots.txt."
+msgstr ""
+
+#: includes/class-readiness.php:158
+msgid "Remove the Disallow rules for these crawlers from robots.txt (see the table below)."
+msgstr ""
+
+#: includes/class-readiness.php:165
+msgid "llms.txt file"
+msgstr ""
+
+#: includes/class-readiness.php:168
+msgid "A llms.txt file exists in your site root."
+msgstr ""
+
+#: includes/class-readiness.php:169
+msgid "This plugin is serving an automatic llms.txt."
+msgstr ""
+
+#: includes/class-readiness.php:169
+msgid "No llms.txt found. It gives AI assistants a clean summary of your site and its key pages."
+msgstr ""
+
+#: includes/class-readiness.php:170
+msgid "Turn on the automatic llms.txt in this plugin's Settings."
+msgstr ""
+
+#: includes/class-readiness.php:177
+msgid "XML sitemap"
+msgstr ""
+
+#. translators: %s: where the sitemap comes from
+#: includes/class-readiness.php:180
+#, php-format
+msgid "Sitemap found (%s)."
+msgstr ""
+
+#. translators: %s: where the sitemap comes from
+#: includes/class-readiness.php:180
+msgid "No sitemap found. Sitemaps help crawlers discover all your pages."
+msgstr ""
+
+#: includes/class-readiness.php:181
+msgid "Enable the sitemap in your SEO plugin, or make sure WordPress's built-in sitemap is not disabled."
+msgstr ""
+
+#: includes/class-readiness.php:187
+msgid "SEO plugin"
+msgstr ""
+
+#. translators: %s: plugin name
+#: includes/class-readiness.php:190
+#, php-format
+msgid "%s is active. It handles titles, descriptions and schema."
+msgstr ""
+
+#. translators: %s: plugin name
+#: includes/class-readiness.php:190
+msgid "No SEO plugin detected. The page checks below show whether titles, descriptions and schema are in place anyway."
+msgstr ""
+
+#. translators: %s: error message
+#: includes/class-readiness.php:292
+#, php-format
+msgid "Could not load the page from the server: %s. Some hosts block a site from loading itself; the site checks above still apply."
+msgstr ""
+
+#: includes/class-readiness.php:304
+msgid "Page loads"
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: includes/class-readiness.php:307
+#, php-format
+msgid "The server answered with status %d."
+msgstr ""
+
+#: includes/class-readiness.php:308
+msgid "Make sure the page is public and not behind a login, maintenance mode or firewall."
+msgstr ""
+
+#: includes/class-readiness.php:319
+msgid "Page can be indexed"
+msgstr ""
+
+#: includes/class-readiness.php:321
+msgid "This page tells search engines not to index it (noindex)."
+msgstr ""
+
+#: includes/class-readiness.php:321
+msgid "No noindex tag found."
+msgstr ""
+
+#: includes/class-readiness.php:322
+msgid "Remove the noindex setting for this page in your SEO plugin."
+msgstr ""
+
+#: includes/class-readiness.php:328
+msgid "Page title"
+msgstr ""
+
+#: includes/class-readiness.php:330
+msgid "The page has no <title>."
+msgstr ""
+
+#: includes/class-readiness.php:331
+msgid "Your theme should output a title. Check that it supports the \"title-tag\" feature."
+msgstr ""
+
+#: includes/class-readiness.php:340
+msgid "Meta description"
+msgstr ""
+
+#: includes/class-readiness.php:342
+msgid "No meta description. AI tools often use it to understand what the page is about."
+msgstr ""
+
+#: includes/class-readiness.php:343
+msgid "Add a description for this page in your SEO plugin."
+msgstr ""
+
+#: includes/class-readiness.php:349
+msgid "Canonical URL"
+msgstr ""
+
+#: includes/class-readiness.php:351
+msgid "The page declares its main URL."
+msgstr ""
+
+#: includes/class-readiness.php:351
+msgid "No canonical link found, so duplicate URLs may split your authority."
+msgstr ""
+
+#: includes/class-readiness.php:352
+msgid "Most SEO plugins add canonical links automatically."
+msgstr ""
+
+#: includes/class-readiness.php:358
+msgid "Structured data (schema)"
+msgstr ""
+
+#. translators: %s: schema types
+#: includes/class-readiness.php:361
+#, php-format
+msgid "Found: %s"
+msgstr ""
+
+#. translators: %s: schema types
+#: includes/class-readiness.php:361
+msgid "No JSON-LD structured data found. Schema tells AI exactly what your business, products and FAQs are."
+msgstr ""
+
+#: includes/class-readiness.php:362
+msgid "Add Organization or LocalBusiness schema (most SEO plugins can do this), plus Product or FAQ schema where relevant."
+msgstr ""
+
+#: includes/class-readiness.php:368
+msgid "One main heading (H1)"
+msgstr ""
+
+#. translators: %d: number of H1 headings
+#: includes/class-readiness.php:371
+#, php-format
+msgid "The page has %d H1 heading."
+msgid_plural "The page has %d H1 headings."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-readiness.php:372
+msgid "Use exactly one H1 that says what the page is about."
+msgstr ""
+
+#: includes/class-readiness.php:378
+msgid "Readable without JavaScript"
+msgstr ""
+
+#. translators: %d: number of words
+#: includes/class-readiness.php:381
+#, php-format
+msgid "About %d words of text are in the page HTML."
+msgstr ""
+
+#: includes/class-readiness.php:382
+msgid "Most AI crawlers do not run JavaScript. Make sure your main content is in the HTML, not loaded by scripts."
+msgstr ""
+
+#: includes/class-repository.php:299
+msgid "Cancelled."
+msgstr ""
+
+#: includes/class-repository.php:328
+msgid "The request stopped before the answer arrived, several times (probably the host's time limit)."
+msgstr ""
+
+#: includes/class-rest.php:182
+#: includes/class-runner.php:224
+msgid "Unknown engine."
+msgstr ""
+
+#: includes/class-rest.php:186
+msgid "Please enter an API key."
+msgstr ""
+
+#: includes/class-rest.php:195
+msgid "Connected! Your key works."
+msgstr ""
+
+#: includes/class-rest.php:247
+#: includes/class-rest.php:260
+#: includes/class-rest.php:277
+#: includes/class-rest.php:293
+msgid "Run not found."
+msgstr ""
+
+#: includes/class-rest.php:324
+msgid "Result not found."
+msgstr ""
+
+#: includes/class-runner.php:48
+msgid "Once a month"
+msgstr ""
+
+#: includes/class-runner.php:86
+msgid "A run is already starting."
+msgstr ""
+
+#: includes/class-runner.php:92
+msgid "A run is already in progress."
+msgstr ""
+
+#: includes/class-runner.php:96
+msgid "Connect and enable at least one AI engine in Settings first."
+msgstr ""
+
+#: includes/class-runner.php:100
+msgid "Add or generate some prompts first."
+msgstr ""
+
+#. translators: 1: estimated cost of the run, 2: amount spent this month, 3: monthly budget
+#: includes/class-runner.php:160
+#, php-format
+msgid "This run would cost about %1$s, but %2$s of the %3$s monthly budget is already spent. Raise the budget in Settings, or remove prompts or engines."
+msgstr ""
+
+#. translators: %s: model ID
+#: includes/providers/class-anthropic-provider.php:40
+#: includes/providers/class-gemini-provider.php:35
+#, php-format
+msgid "The key works, but the model \"%s\" was not found. Choose another model."
+msgstr ""
+
+#: includes/providers/class-anthropic-provider.php:80
+msgid "Claude declined to answer this prompt."
+msgstr ""
+
+#. translators: %s: finish reason reported by Gemini
+#: includes/providers/class-anthropic-provider.php:133
+#: includes/providers/class-gemini-provider.php:67
+#: includes/providers/class-responses-provider.php:61
+msgid "The model returned an empty answer."
+msgstr ""
+
+#. translators: %s: service name
+#: includes/providers/class-base-provider.php:113
+#, php-format
+msgid "Unexpected response from %s."
+msgstr ""
+
+#. translators: %s: service name
+#: includes/providers/class-base-provider.php:166
+#, php-format
+msgid "Invalid %s API key, or the key lacks permission."
+msgstr ""
+
+#. translators: %s: service name
+#: includes/providers/class-base-provider.php:182
+#, php-format
+msgid "%s rate limit reached, or no credits left on the account."
+msgstr ""
+
+#. translators: 1: service name, 2: HTTP status code
+#: includes/providers/class-base-provider.php:186
+#, php-format
+msgid "%1$s returned HTTP %2$d."
+msgstr ""
+
+#: includes/providers/class-base-provider.php:220
+msgid "The model returned invalid JSON."
+msgstr ""
+
+#. translators: %s: finish reason reported by Gemini
+#: includes/providers/class-gemini-provider.php:67
+#, php-format
+msgid "Gemini returned no answer (%s)."
+msgstr ""
+
+#. translators: %s: model ID
+#: includes/providers/class-openai-provider.php:40
+#, php-format
+msgid "The key works, but it cannot use the model \"%s\". Choose another model."
+msgstr ""
+
+#: includes/providers/class-responses-provider.php:191
+msgid "The request failed."
+msgstr ""
+
+#. translators: %s: model ID
+#: includes/providers/class-xai-provider.php:45
+#, php-format
+msgid "The key works, but the model \"%s\" is not available to it. Choose another model."
+msgstr ""

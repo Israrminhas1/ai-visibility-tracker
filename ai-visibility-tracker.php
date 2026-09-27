@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AI Visibility Tracker
  * Description:       See if ChatGPT, Claude, Gemini, Perplexity and Grok mention your brand. Generate prompts from your site, see the sources AI cites, and discover competitors. Bring your own API keys.
- * Version:           0.2.0
+ * Version:           0.3.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Israr Minhas
@@ -15,8 +15,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AIVT_VERSION', '0.2.0' );
-define( 'AIVT_DB_VERSION', '2' );
+define( 'AIVT_VERSION', '0.3.0' );
+define( 'AIVT_DB_VERSION', '3' );
 define( 'AIVT_FILE', __FILE__ );
 define( 'AIVT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AIVT_URL', plugin_dir_url( __FILE__ ) );
@@ -42,4 +42,5 @@ spl_autoload_register(
 register_activation_hook( __FILE__, array( 'AIVT\\Installer', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'AIVT\\Installer', 'deactivate' ) );
 
-add_action( 'plugins_loaded', array( 'AIVT\\Plugin', 'instance' ) );
+// Boot on init: translations may only load from init on (WordPress 6.7+), and every hook the plugin uses fires later.
+add_action( 'init', array( 'AIVT\\Plugin', 'instance' ), 0 );

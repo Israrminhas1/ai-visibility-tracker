@@ -100,6 +100,16 @@ $aivt_fmt         = get_option( 'date_format' ) . ' ' . get_option( 'time_format
 		<?php if ( $aivt_f_prompt ) : ?>
 			<a class="button-link" href="<?php echo esc_url( Admin::url( 'aivt-results', array( 'run' => (int) $aivt_run['id'] ) ) ); ?>"><?php esc_html_e( 'Show all prompts', 'ai-visibility-tracker' ); ?></a>
 		<?php endif; ?>
+		<span class="aivt-filters__end">
+			<span class="aivt-muted aivt-small">
+				<?php
+				/* translators: %s: cost of the check */
+				printf( esc_html__( 'Cost: %s', 'ai-visibility-tracker' ), esc_html( \AIVT\Pricing::format( (float) $aivt_run['cost'] ) ) );
+				?>
+			</span>
+			<a class="button" href="<?php echo esc_url( Admin::action_url( 'export', array( 'what' => 'results', 'run' => (int) $aivt_run['id'] ) ) ); ?>"><?php esc_html_e( 'Export CSV', 'ai-visibility-tracker' ); ?></a>
+			<a class="button-link aivt-danger" href="<?php echo esc_url( Admin::action_url( 'delete_run', array( 'run' => (int) $aivt_run['id'] ) ) ); ?>" data-aivt-confirm-link="<?php esc_attr_e( 'Delete this check and all its answers? This cannot be undone.', 'ai-visibility-tracker' ); ?>"><?php esc_html_e( 'Delete check', 'ai-visibility-tracker' ); ?></a>
+		</span>
 	</form>
 
 	<table class="aivt-table aivt-results">
