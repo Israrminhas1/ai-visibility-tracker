@@ -50,7 +50,7 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( AIVT_FILE ), array( $this, 'action_links' ) );
 
-		foreach ( array( 'save_settings', 'save_engines', 'add_prompts', 'prompt_action', 'competitor', 'audit', 'export', 'delete_run' ) as $action ) {
+		foreach ( array( 'save_settings', 'add_prompts', 'prompt_action', 'competitor', 'audit', 'export', 'delete_run' ) as $action ) {
 			add_action( 'admin_post_aivt_' . $action, array( $this, 'handle_' . $action ) );
 		}
 	}
@@ -329,17 +329,6 @@ class Admin {
 		Llms_Txt::flush();
 		Readiness::flush();
 		$this->redirect( 'aivt-settings', __( 'Settings saved.', 'ai-visibility-tracker' ) );
-	}
-
-	/**
-	 * Save engine keys, models and enabled flags.
-	 */
-	public function handle_save_engines() {
-		$this->verify( 'save_engines' );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
-		$input = isset( $_POST['engines'] ) && is_array( $_POST['engines'] ) ? wp_unslash( $_POST['engines'] ) : array();
-		$this->save_engines( $input );
-		$this->redirect( 'aivt-settings', __( 'AI engines saved.', 'ai-visibility-tracker' ) );
 	}
 
 	/**
