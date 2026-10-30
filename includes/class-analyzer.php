@@ -79,7 +79,7 @@ class Analyzer {
 
 		// Competitors you track are always looked for in the text, so they are
 		// found even when the AI extraction call fails or misses them.
-		$candidates = $this->extract_brands( $text );
+		$candidates = $this->extract_brands( $text, $settings );
 		foreach ( $competitors as $c ) {
 			if ( ! empty( $c['name'] ) && false !== self::first_offset( $text, array( $c['name'] ) ) ) {
 				$candidates[] = array(
@@ -155,7 +155,7 @@ class Analyzer {
 	 * @param string $text Answer text.
 	 * @return array List of [ name, domain ].
 	 */
-	private function extract_brands( $text ) {
+	private function extract_brands( $text, array $settings = array() ) {
 		if ( null === $this->provider ) {
 			return array();
 		}
@@ -179,10 +179,13 @@ class Analyzer {
 			),
 		);
 
+		$business = trim( (string) ( isset( $settings['business'] ) ? $settings['business'] : '' ) );
+
 		$data = $this->provider->json(
-			'You extract brand mentions from text. List every company, product, service or brand that the text recommends or names as an option, in order of first appearance. '
-			. 'Use the name exactly as written in the text. Set domain to the brand\'s official website domain (e.g. "example.com") only if you are confident, otherwise an empty string. '
-			. 'Do NOT include publishers or websites that are only referenced as sources (news sites, review sites, Reddit, Wikipedia) unless the text recommends them as an option.',
+			'You extract the businesses an AI answer recommends, so a company can see who it competes with. List every business, company, practice, professional or branded product the text recommends or names as an option to choose, in order of first appearance. '
+			. ( '' !== $business ? 'The company tracking this offers: "' . $business . '". Prefer providers a customer could choose instead of it. ' : '' )
+			. 'Use the name exactly as written in the text. Set domain to its official website domain (e.g. "example.com") only if you are confident, otherwise an empty string. '
+			. 'Do NOT include: generic treatments, procedures, techniques or product categories (e.g. "liposuction", "dermal fillers"); the thing the user asked about itself; certification, licensing or professional bodies, regulators and associations; or publishers and websites only referenced as sources (news sites, review sites, Reddit, Wikipedia) unless the text recommends them as an option.',
 			$text,
 			'brand_mentions',
 			$schema

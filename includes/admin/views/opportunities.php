@@ -63,7 +63,19 @@ $aivt_advice = function ( $domain ) use ( $settings ) {
 <?php if ( ! $aivt_opps ) : ?>
 	<section class="aivt-card aivt-empty-state">
 		<span class="dashicons dashicons-awards" aria-hidden="true"></span>
-		<h2><?php esc_html_e( 'AI mentioned you in every answer.', 'ai-visibility-tracker' ); ?></h2>
+		<h2><?php esc_html_e( 'AI mentioned you in every answer it gave.', 'ai-visibility-tracker' ); ?></h2>
+		<?php if ( (int) $aivt_run['failed'] > 0 ) : ?>
+			<p class="aivt-warning">
+				<?php
+				printf(
+					/* translators: %d: number of failed answers */
+					esc_html( _n( 'But %d answer in the last check failed, so this may not be the full picture.', 'But %d answers in the last check failed, so this may not be the full picture.', (int) $aivt_run['failed'], 'ai-visibility-tracker' ) ),
+					(int) $aivt_run['failed']
+				);
+				?>
+				<a href="<?php echo esc_url( Admin::url( 'aivt-results', array( 'run' => (int) $aivt_run['id'] ) ) ); ?>"><?php esc_html_e( 'See why', 'ai-visibility-tracker' ); ?></a>
+			</p>
+		<?php endif; ?>
 		<p class="aivt-muted"><?php esc_html_e( 'Add more prompts to find new areas where AI doesn\'t know you yet.', 'ai-visibility-tracker' ); ?></p>
 		<a class="button button-primary" href="<?php echo esc_url( Admin::url( 'aivt-prompts' ) ); ?>"><?php esc_html_e( 'Add prompts', 'ai-visibility-tracker' ); ?></a>
 	</section>
